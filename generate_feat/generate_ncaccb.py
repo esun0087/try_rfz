@@ -84,7 +84,7 @@ def pdb2coords2(input_file):
             coords = coords.flatten().tolist()
 
             all_coords.append(coords)
-            sel_idxs.append(residue.id[1])
+            sel_idxs.append(residue.id[1] - 1)
     except Exception as e:
         pass
 

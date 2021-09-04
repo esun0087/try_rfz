@@ -3,12 +3,10 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils import data
-from parsers import parse_a3m, read_templates
 from RoseTTAFoldModel  import RoseTTAFoldModule_e2e
-import util
 from collections import namedtuple
 from ffindex import *
-from kinematics import xyz_to_c6d, c6d_to_bins2, xyz_to_t2d
+from kinematics import xyz_to_t2d
 from trFold import TRFold
 import torch.optim as optim
 from torch.optim import lr_scheduler
@@ -30,37 +28,37 @@ MODEL_PARAM ={
         "n_head_msa"   : 2,
         "n_head_pair"  : 2,
         "n_head_templ" : 2,
-        "d_hidden"     : 32,
+        "d_hidden"     : 8,
         "r_ff"         : 4,
         "n_resblock"   : 1,
         "p_drop"       : 0.0,
         "use_templ"    : True,
-        "performer_N_opts": {"nb_features": 16},
-        "performer_L_opts": {"nb_features": 16}
+        # "performer_N_opts": {"nb_features": 16},
+        # "performer_L_opts": {"nb_features": 16}
         }
 
 SE3_param = {
         "num_layers"    : 2,
-        "num_channels"  : 16,
+        "num_channels"  : 8,
         "num_degrees"   : 2,
-        "l0_in_features": 32,
+        "l0_in_features": 8,
         "l0_out_features": 8,
         "l1_in_features": 3,
         "l1_out_features": 3,
-        "num_edge_features": 16,
+        "num_edge_features": 8,
         "div": 2,
         "n_heads": 4
         }
 
 REF_param = {
-        "num_layers"    : 2,
-        "num_channels"  : 32,
+        "num_layers"    : 1,
+        "num_channels"  : 8,
         "num_degrees"   : 3,
-        "l0_in_features": 32,
+        "l0_in_features": 8,
         "l0_out_features": 8,
         "l1_in_features": 3,
         "l1_out_features": 3,
-        "num_edge_features": 16,
+        "num_edge_features": 8,
         "div": 4,
         "n_heads": 2
         }
@@ -103,53 +101,54 @@ class Train():
         # define model & load model
         self.model = RoseTTAFoldModule_e2e(**MODEL_PARAM).to(self.device)
 
-    def train(self, data_path):
-        torch.autograd.set_detect_anomaly(True)
-        train_data = data_reader.DataRead(data_path)
-        dataloader = torch.utils.data.DataLoader(train_data, batch_size=1, shuffle=True)
-        optimizer = optim.SGD(self.model.parameters(), lr=0.001)
-        scheduler = lr_scheduler.MultiStepLR(optimizer, [550, 800], 0.1)
-        cross_loss = nn.CrossEntropyLoss()
-        mse_loss = torch.nn.MSELoss()
-        epoch = 0
-        while 1:
-            avg_loss, data_cnt = 0, 0
-            for i, data in enumerate(dataloader):
-                feat, label = data
-                optimizer.zero_grad()
-                msa, xyz_t, t1d, t0d = feat
-                xyz_label, prob_s_label = label
-                xyz, lddt, prob_s = self.get_model_result(msa, xyz_t, t1d, t0d)
-                # print(f"train prob_s {prob_s.shape} prob_s_label {prob_s_label.shape} xyz {xyz.shape} xyz_label {xyz_label.shape}")
-                prob_s_label = torch.flatten(prob_s_label)
-                prob_s = prob_s[0]
-                prob_s = prob_s.view(-1, 37)
-                cross_loss_sum = cross_loss(prob_s.float(), prob_s_label)
-                xyz = xyz.view(-1, 3 * 3)
-                xyz_label = xyz_label.view(-1, 3 * 3)
-                # print(xyz[0], xyz_label[0])
-                mse_loss_sum = mse_loss(xyz.float(), xyz_label.float())
-                mse_loss_sum = torch.sqrt(mse_loss_sum)
-                # lddt_sum = lddt_torch.lddt(xyz.float(), xyz_label.float(), False)
-                # print(f"lddt sum {lddt_sum}")
-                # loss = cross_loss_sum + mse_loss_sum
-                # loss = cross_loss_sum
-                loss = mse_loss_sum
-                avg_loss += loss.cpu().detach().numpy()
-                # print(f"=================train epoch {epoch} iter is {i} loss {loss}")
-                loss.backward()
-                optimizer.step()
-                data_cnt += 1
-            # scheduler.step()
-            avg_loss = avg_loss / data_cnt
-            print(f"=================train epoch {epoch} avg_loss {avg_loss}")
-            epoch += 1
+    # 不再用了
+    # def train(self, data_path):
+    #     torch.autograd.set_detect_anomaly(True)
+    #     train_data = data_reader.DataRead(data_path)
+    #     dataloader = torch.utils.data.DataLoader(train_data, batch_size=1, shuffle=True)
+    #     optimizer = optim.SGD(self.model.parameters(), lr=0.0001)
+    #     scheduler = lr_scheduler.MultiStepLR(optimizer, [550, 800], 0.1)
+    #     cross_loss = nn.CrossEntropyLoss()
+    #     mse_loss = torch.nn.MSELoss()
+    #     epoch = 0
+    #     while 1:
+    #         avg_loss, data_cnt = 0, 0
+    #         for i, data in enumerate(dataloader):
+    #             feat, label = data
+    #             optimizer.zero_grad()
+    #             msa, xyz_t, t1d, t0d = feat
+    #             xyz_label, prob_s_label = label
+    #             xyz, lddt, prob_s = self.get_model_result(msa, xyz_t, t1d, t0d)
+    #             # print(f"train prob_s {prob_s.shape} prob_s_label {prob_s_label.shape} xyz {xyz.shape} xyz_label {xyz_label.shape}")
+    #             prob_s_label = torch.flatten(prob_s_label)
+    #             prob_s = prob_s[0]
+    #             prob_s = prob_s.view(-1, 37)
+    #             cross_loss_sum = cross_loss(prob_s.float(), prob_s_label)
+    #             xyz = xyz.view(-1, 3 * 3)
+    #             xyz_label = xyz_label.view(-1, 3 * 3)
+    #             # print(xyz[0], xyz_label[0])
+    #             mse_loss_sum = mse_loss(xyz.float(), xyz_label.float())
+    #             mse_loss_sum = torch.sqrt(mse_loss_sum)
+    #             # lddt_sum = lddt_torch.lddt(xyz.float(), xyz_label.float(), False)
+    #             # print(f"lddt sum {lddt_sum}")
+    #             # loss = cross_loss_sum + mse_loss_sum
+    #             loss = cross_loss_sum
+    #             # loss = mse_loss_sum
+    #             avg_loss += loss.cpu().detach().numpy()
+    #             # print(f"=================train epoch {epoch} iter is {i} loss {loss}")
+    #             loss.backward()
+    #             optimizer.step()
+    #             data_cnt += 1
+    #         # scheduler.step()
+    #         avg_loss = avg_loss / data_cnt
+    #         print(f"=================train epoch {epoch} avg_loss {avg_loss}")
+    #         epoch += 1
     def train_with_mask(self, data_path):
         torch.autograd.set_detect_anomaly(True)
         train_data = data_reader.DataRead(data_path)
         dataloader = torch.utils.data.DataLoader(train_data, batch_size=1, shuffle=True)
         optimizer = optim.Adam(self.model.parameters(), lr=0.001)
-        scheduler = lr_scheduler.MultiStepLR(optimizer, [550, 800], 0.1)
+        scheduler = lr_scheduler.MultiStepLR(optimizer, [200, 400], 0.1)
         cross_loss = nn.CrossEntropyLoss()
         mse_loss = torch.nn.MSELoss()
         epoch = 0
@@ -186,13 +185,13 @@ class Train():
                 xyz = xyz[sel_xyz]
                 xyz_label = xyz_label[sel_xyz]
 
-                xyz = xyz.view(-1, 3 * 3)
                 xyz_label = xyz_label.view(-1, 3 * 3)
-                # print(xyz[0], xyz_label[0])
+                xyz = xyz.view(-1, 3 * 3)
                 mse_loss_sum = mse_loss(xyz.float(), xyz_label.float())
                 mse_loss_sum = torch.sqrt(mse_loss_sum)
 
                 # lddt_sum = lddt_torch.lddt(xyz.view(1, -1, 3).float(), xyz_label.view(1, -1, 3).float(), False)
+                # print(f"lddt is {lddt_sum}")
 
                 # loss = cross_loss_sum + mse_loss_sum
                 loss = mse_loss_sum
@@ -202,9 +201,9 @@ class Train():
                 loss.backward()
                 optimizer.step()
                 data_cnt += 1
-            # scheduler.step()
+            scheduler.step()
             avg_loss = avg_loss / data_cnt
-            print(f"=================train epoch {epoch} avg_loss {avg_loss}")
+            print(f"=================train epoch {epoch} avg_loss {avg_loss} lddt {torch.sum(lddt)}")
             epoch += 1
     def for_cropped(self, msa, t0d, t1d, t2d, window, shift):
         B, N, L = msa.shape

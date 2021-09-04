@@ -18,7 +18,7 @@ import torch as jnp
 
 def lddt(predicted_points,
                  true_points,
-                 cutoff=15.,
+                 cutoff=20.,
                  per_residue=False):
     """Measure (approximate) lDDT for a batch of coordinates.
 
@@ -50,9 +50,6 @@ def lddt(predicted_points,
         An (approximate, see above) lDDT score in the range 0-1.
     """
 
-    assert len(predicted_points.shape) == 3
-    assert predicted_points.shape[-1] == 3
-
     # Compute true and predicted distance matrices.
     dmat_true = jnp.sqrt(1e-10 + jnp.sum((true_points[:, :, None] - true_points[:, None, :])**2, axis=-1))
 
@@ -61,7 +58,7 @@ def lddt(predicted_points,
              predicted_points[:, None, :])**2, axis=-1))
 
     dists_to_score = (
-            (dmat_true < cutoff).float()   * \
+            (dmat_true < cutoff).float() * \
             (1. - jnp.eye(dmat_true.shape[1]))    # Exclude self-interaction.
     )
 
@@ -83,14 +80,14 @@ def lddt(predicted_points,
     return score
 import numpy as np
 if __name__ == '__main__':
-    # predicted_points = jnp.random.rand(10, 50, 3)
-    # true_points = jnp.random.rand(10, 50, 3)
 
-    # predicted_points = jnp.randn(10, 50, 3)
-    # true_points = jnp.randn(10, 50, 3)
-    pred = np.load("test_lddt_predict.npy")
-    trues = np.load("test_lddt_true.npy")
-    pred = jnp.from_numpy(pred)
-    trues = jnp.from_numpy(trues)
-    print(lddt(pred, trues, per_residue=False))
+    predicted_points = jnp.randn(10, 50, 3)
+    true_points = jnp.randn(10, 50, 3)
+    # np.savetxt("p.txt", predicted_points)
+    # np.savetxt("t.txt", true_points)
+    # pred = np.load("test_lddt_predict.npy")
+    # trues = np.load("test_lddt_true.npy")
+    # pred = jnp.from_numpy(pred)
+    # trues = jnp.from_numpy(trues)
+    print(lddt(predicted_points, true_points, per_residue=False))
     pass

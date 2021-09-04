@@ -35,7 +35,6 @@ def parse_a3m(filename):
 
         # remove lowercase letters and append to MSA
         msa.append(line.translate(table)) 
-        print(line, len(line.translate(table)))
         if len(msa) > 100:
             break
 

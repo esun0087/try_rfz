@@ -118,8 +118,10 @@ def read_data_true_mask(data_path):
         feat_new = [torch.tensor(f).float() for f in feat]
         feat_new[0] = feat_new[0].long()
         print(f"data shape {feat_new[0].shape}", )
-        label_new = [torch.tensor(i).long() for i in label]
-        label_new[0] = label_new[0].float() # xyz
+        label_new = []
+        label_new.append(torch.tensor(label[0]).float()) # xyz
+        label_new.extend([torch.tensor(i).long() for i in label[1:]])
+
         masks_new = [torch.tensor(i).long() for i in masks]
         train_data.append((tuple(feat_new), tuple(label_new), tuple(masks_new)))
     f.close()
@@ -152,7 +154,7 @@ def read_data_forsave(data_path):
             continue
         # print(seq_name,seq_feat_path)
         xyz_label = read_xyz(os.path.join(seq_feat_path, seq_name + ".xyz.npy"))
-        prob_s_label = read_dis(os.path.join(seq_feat_path, seq_name + ".dis.npy"))
+        # prob_s_label = read_dis(os.path.join(seq_feat_path, seq_name + ".dis.npy"))
         prob_s_label_2 = read_dis_angle(os.path.join(seq_feat_path, seq_name + ".dis_angle.npy"))
         dis_masks = read_mask(os.path.join(seq_feat_path, seq_name + ".mask.npy"))
         xyz_mask = np.zeros(L)
@@ -170,7 +172,7 @@ def read_data_forsave(data_path):
         feat = torch.from_numpy(msa).long(), xyz_t, t1d, t0d
 
         print(f"debug {seq_name} msa {torch.from_numpy(msa).shape} xyz_t {xyz_t.shape} \
-            xyz_label {torch.from_numpy(xyz_label).shape} prob_s_label {torch.from_numpy(prob_s_label).shape}")
+            xyz_label {torch.from_numpy(xyz_label).shape}")
         data.append((feat, label, masks))
 
     del(ffdb)

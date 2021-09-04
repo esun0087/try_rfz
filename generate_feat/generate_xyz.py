@@ -82,12 +82,14 @@ def pdb2coords2(input_file):
         coords = [residue[i].get_coord() for i in atom_name]
         coords = np.concatenate(coords, -1).reshape(-1, 3)
         coords = coords.flatten().tolist()
-        sel_idxs.append(residue.id[1])
+        sel_idxs.append(residue.id[1] - 1)
         all_coords.append(coords)
     return pdb_name, np.array(all_coords), sel_idxs
 def process(out_base_dir, pdb):
     pdb_name, coords, sel_idxs = pdb2coords2(pdb.strip())
-    m = np.array(coords).reshape(-1, 3, 3)
+
+    x = coords.reshape(-1, 3,3).transpose(0, 2, 1)
+    print(x.shape, x[0,1,:])
     if pdb_name is None:
         return
     out_dir = os.path.join(out_base_dir, pdb_name)

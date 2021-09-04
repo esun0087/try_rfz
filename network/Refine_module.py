@@ -147,6 +147,7 @@ class Refine_module(nn.Module):
         prev_lddt = 0.0
         no_impr = 0
         no_impr_best = 0
+        # for test train
         for i_iter in range(2):
             for i_m in range(self.n_module):
                 if use_transf_checkpoint:
