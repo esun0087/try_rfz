@@ -1,0 +1,96 @@
+import torch.nn as nn
+import torch
+# loss = nn.CrossEntropyLoss()
+# data = torch.randn(5 * 3 * 3, 8)
+# target = torch.randint(0, 5, (5 * 3*3,))
+# data = data.view(-1, 8)
+# target = target.view(-1, 1)
+# target = torch.flatten(target)
+# print (target.shape)
+# output = loss(data, target)
+# print(output)
+
+
+# w1 = torch.FloatTensor([[2.], [1.]])
+# w2 = torch.FloatTensor([3.])
+# w1.requires_grad = True
+# w2.requires_grad = True
+
+# d = torch.matmul(x, w1)
+# # d[:] = 1   # 稍微调换一下位置, 就没有问题了
+
+# f = torch.matmul(d, w2.T)
+# f.backward()
+# print(w2.grad)
+
+
+import torch
+import torch.autograd
+import torch.optim as optim
+import torch.nn as nn
+from torch.nn.parameter import Parameter, UninitializedParameter
+
+# x = torch.tensor(3.0, requires_grad=True)
+# optimizer = optim.SGD([x], lr=0.1)
+# y = torch.tensor(4.0)
+# z = torch.pow(x, 2) * y
+# optimizer.zero_grad()
+# z.backward()
+# print(x.grad)
+# optimizer.step()
+# print(x)
+
+
+# x = torch.tensor([[1.0,2.0,3.0],[4.0,5.0,6.0]], requires_grad=True)
+# y = x**2 + x
+
+# gradient1 = torch.tensor([[1.,1.,1.],[1.,1.,1.]])
+# gradient2 = torch.tensor([[1.,0.1,0.01],[1.,1.,1.]])
+# y.backward(gradient1)
+# print(x.grad)
+
+# x.grad.zero_()
+# y = x**2 + x
+# y.backward(gradient2)
+# print(x.grad)
+
+# from torch.optim import lr_scheduler
+# import torch.optim as optim
+# x = torch.tensor(3.0, requires_grad=True)
+# optimizer = optim.Adam(params=[x], lr=0.05)
+# scheduler2 = lr_scheduler.MultiStepLR(optimizer, [30, 60,100], 0.1)
+# x2 = list(range(150))
+# y2 = []
+# for epoch in range(150):
+#     scheduler2.step()
+#     print(epoch, scheduler2.get_lr()[0])
+
+
+# mse_loss = torch.nn.MSELoss()
+# a =torch.tensor([1,2,3]).float()
+# b = torch.tensor([2,4,6]).float()
+# print(mse_loss(a, b))
+
+# a = torch.randn(2,2,3)
+# b = torch.randn(2,2,3)
+# c = [a,b]
+# c = torch.cat(c, 0).shape
+# print(c)
+
+a = torch.randn(1, 138, 3,3)
+b = (torch.tensor([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0]), torch.tensor([  3,   4,   5,   6,   7,   8,   9,  10,  11,  12,  13,  14,  15,  16,
+         17,  18,  19,  20,  21,  22,  23,  24,  25,  26,  27,  28,  29,  30,
+         31,  32,  33,  34,  35,  36,  37,  38,  39,  40,  41,  42,  43,  44,
+         45,  46,  47,  48,  49,  50,  51,  52,  53,  54,  55,  56,  57,  58,
+         59,  60,  61,  62,  63,  64,  65,  66,  67,  68,  69,  70,  71,  72,
+         73,  74,  75,  76,  77,  78,  79,  80,  81,  82,  83,  84,  85,  86,
+         87,  88,  89,  90,  91,  92,  93,  94,  95,  96,  97,  98,  99, 100,
+        101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114,
+        115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128,
+        129, 130, 131]))
+print(a[b].shape)

@@ -1,0 +1,2 @@
+hhblits -o /dev/null -mact 0.35 -maxfilt 100000000 -neffmax 20 -cov 25 -cpu 16 -nodiff -realign_max 100000000 -maxseq 1000000 -maxmem 8 -n 1 -d /mnt/e/study/RoseTTAFold-Train/data/pdb70/pdb70
+10

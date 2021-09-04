@@ -1,0 +1,240 @@
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 1577.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain C is discontinuous at line 1628.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 1699.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 3932.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 3933.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 3934.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 4087.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain C is discontinuous at line 4273.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain D is discontinuous at line 4297.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 2663.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain C is discontinuous at line 3002.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 3011.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain D is discontinuous at line 3239.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 1551.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain C is discontinuous at line 1590.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 1620.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 2539.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain C is discontinuous at line 2563.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 2567.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain D is discontinuous at line 2593.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 3579.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 3712.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain C is discontinuous at line 3763.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 1419.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 1464.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 2599.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 2662.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain C is discontinuous at line 2710.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain D is discontinuous at line 2719.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 1580.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain C is discontinuous at line 1606.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 1627.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 1558.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain C is discontinuous at line 1581.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 1602.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 1569.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain C is discontinuous at line 1609.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 1635.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 3545.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 3626.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain C is discontinuous at line 3652.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 1574.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain C is discontinuous at line 1595.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 1609.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 9632.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 9928.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain C is discontinuous at line 10237.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 2578.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 2653.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain C is discontinuous at line 2698.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain D is discontinuous at line 2704.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 3624.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 3899.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain C is discontinuous at line 3972.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain N is discontinuous at line 5705.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 4483.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 4947.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 1552.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain C is discontinuous at line 1584.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 1611.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 1419.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 1464.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 1558.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain C is discontinuous at line 1581.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 1602.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 1577.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain C is discontinuous at line 1628.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 1699.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 3545.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 3626.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain C is discontinuous at line 3652.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 2578.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 2653.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain C is discontinuous at line 2698.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain D is discontinuous at line 2704.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 3579.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 3712.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain C is discontinuous at line 3763.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 2599.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 2662.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain C is discontinuous at line 2710.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain D is discontinuous at line 2719.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 1552.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain C is discontinuous at line 1584.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 1611.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 3932.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 3933.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 3934.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 4087.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain C is discontinuous at line 4273.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain D is discontinuous at line 4297.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 2663.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain C is discontinuous at line 3002.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 3011.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain D is discontinuous at line 3239.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 1551.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain C is discontinuous at line 1590.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 1620.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 3624.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 3899.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain C is discontinuous at line 3972.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 2539.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain C is discontinuous at line 2563.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 2567.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain D is discontinuous at line 2593.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 1580.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain C is discontinuous at line 1606.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 1627.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain N is discontinuous at line 5705.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 1574.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain C is discontinuous at line 1595.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 1609.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 4483.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 4947.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 9632.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 9928.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain C is discontinuous at line 10237.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain B is discontinuous at line 1569.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain C is discontinuous at line 1609.
+  warnings.warn(
+/home/wangbiao/miniconda3/envs/rosetta/lib/python3.8/site-packages/Bio/PDB/StructureBuilder.py:89: PDBConstructionWarning: WARNING: Chain A is discontinuous at line 1635.
+  warnings.warn(

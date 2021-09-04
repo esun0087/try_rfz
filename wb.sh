@@ -1,0 +1,3 @@
+hhsearch -b 50 -B 500 -z 50 -Z 500 -mact 0.05 -cpu 16 -maxmem 12 -aliw 100000 -e 1000000 -p 5.0 -d ./pdb100_2021Mar03/pdb100_2021Mar03 -i search-test/t000_.msa0.ss2.a3m -o search-test/t000_.hhr -atab search-test/t000_.atab
+hhsearch -b 50 -B 500 -z 50 -Z 500 -mact 0.05 -cpu 1 -maxmem 12 -aliw 100000 -e 1000000 -p 5.0 -d ./pdb100_2021Mar03/pdb100_2021Mar03 -i search-test/t000_.msa0.ss2.a3m -o search-test/t000_.hhr -atab search-test/t000_.atab
+python3 network/predict_e2e.py -i example/end-to-end/t000_.msa0.a3m -o example/end-to-end/t000_.e2e --hhr example/end-to-end/t000_.hhr --atab example/end-to-end/t000_.atab -m weights

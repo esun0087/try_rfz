@@ -1,0 +1,20 @@
+/mnt/e/study/RoseTTAFold-Train/input_prep/make_msa.sh: line 26: 28922 Segmentation fault      (core dumped) $HHBLITS -i $prev_a3m -o ${out_prefix}.hhr -oa3m ${out_prefix}.msa0.a3m -atab ${out_prefix}.atab -e $e -v 0
+- 20:08:32.791 INFO: Input file = /mnt/e/study/RoseTTAFold-Train/generate_feat/tmp-test/101m/hhblits/t000_.10.a3m
+
+- 20:08:32.791 INFO: Output file = /mnt/e/study/RoseTTAFold-Train/generate_feat/tmp-test/101m/hhblits/t000_.10.id90cov75.a3m
+
+- 20:08:32.791 ERROR: In /mnt/e/study/RoseTTAFold-Train/hh-suite/src/hhfilter.cpp:177: main:
+
+- 20:08:32.791 ERROR: 	could not open file '/mnt/e/study/RoseTTAFold-Train/generate_feat/tmp-test/101m/hhblits/t000_.10.a3m'
+
+- 20:08:32.798 INFO: Input file = /mnt/e/study/RoseTTAFold-Train/generate_feat/tmp-test/101m/hhblits/t000_.10.a3m
+
+- 20:08:32.799 INFO: Output file = /mnt/e/study/RoseTTAFold-Train/generate_feat/tmp-test/101m/hhblits/t000_.10.id90cov50.a3m
+
+- 20:08:32.799 ERROR: In /mnt/e/study/RoseTTAFold-Train/hh-suite/src/hhfilter.cpp:177: main:
+
+- 20:08:32.799 ERROR: 	could not open file '/mnt/e/study/RoseTTAFold-Train/generate_feat/tmp-test/101m/hhblits/t000_.10.a3m'
+
+grep: /mnt/e/study/RoseTTAFold-Train/generate_feat/tmp-test/101m/hhblits/t000_.10.id90cov75.a3m: No such file or directory
+grep: /mnt/e/study/RoseTTAFold-Train/generate_feat/tmp-test/101m/hhblits/t000_.10.id90cov50.a3m: No such file or directory
+cp: cannot stat '/mnt/e/study/RoseTTAFold-Train/generate_feat/tmp-test/101m/hhblits/t000_.1e-3.id90cov50.a3m': No such file or directory
