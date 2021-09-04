@@ -148,7 +148,7 @@ class Refine_module(nn.Module):
         no_impr = 0
         no_impr_best = 0
         # for test train
-        for i_iter in range(2):
+        for i_iter in range(3):
             for i_m in range(self.n_module):
                 if use_transf_checkpoint:
                     xyz, state = checkpoint.checkpoint(create_custom_forward(self.refine_net[i_m], top_k=64), node.float(), edge.float(), xyz.detach().float(), state.float(), seq1hot, idx)

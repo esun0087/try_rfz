@@ -147,8 +147,8 @@ class Train():
         torch.autograd.set_detect_anomaly(True)
         train_data = data_reader.DataRead(data_path)
         dataloader = torch.utils.data.DataLoader(train_data, batch_size=1, shuffle=True)
-        optimizer = optim.Adam(self.model.parameters(), lr=0.001)
-        scheduler = lr_scheduler.MultiStepLR(optimizer, [200, 400], 0.1)
+        optimizer = optim.Adam(self.model.parameters(), lr=0.01)
+        scheduler = lr_scheduler.MultiStepLR(optimizer, [200, 500], 0.1)
         cross_loss = nn.CrossEntropyLoss()
         mse_loss = torch.nn.MSELoss()
         epoch = 0
@@ -194,8 +194,8 @@ class Train():
                 # print(f"lddt is {lddt_sum}")
 
                 # loss = cross_loss_sum + mse_loss_sum
-                loss = mse_loss_sum
-                # loss = cross_loss_sum
+                # loss = mse_loss_sum
+                loss = cross_loss_sum
                 avg_loss += loss.cpu().detach().numpy()
                 # print(f"=================train epoch {epoch} iter is {i} loss {loss}")
                 loss.backward()

@@ -101,10 +101,10 @@ class RoseTTAFoldModule_e2e(nn.Module):
         if not refine_only:
             B, N, L = msa.shape
             # Get embeddings
-            msa = self.msa_emb(msa, idx)
+            msa = self.msa_emb(msa, idx) # idx 主要是为了添加位置信息, t1d是为了添加ij的匹配信息 
             if self.use_templ:
                 tmpl = self.templ_emb(t1d, t2d, idx)
-                pair = self.pair_emb(seq, idx, tmpl)
+                pair = self.pair_emb(seq, idx, tmpl) # 感觉是把序列embeding信息，idx一维位置信息，强行扩展，添加到了二维信息里.分为横向和纵向扩展
             else:
                 pair = self.pair_emb(seq, idx)
             #

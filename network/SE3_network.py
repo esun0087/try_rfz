@@ -101,6 +101,8 @@ class SE3Transformer(nn.Module):
     @torch.cuda.amp.autocast(enabled=False)
     def forward(self, G, type_0_features, type_1_features):
         # Compute equivariant weight basis from relative positions
+        # type_0_features msa特征
+        # type_1_features 坐标信息
         basis, r = get_basis_and_r(G, self.num_degrees-1)
         h = {'0': type_0_features, '1': type_1_features}
 

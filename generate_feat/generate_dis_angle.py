@@ -10,7 +10,12 @@ import torch
 """
 CA x y z
 """
-
+params = {
+    "DMIN"    : 2.0,
+    "DMAX"    : 20.0,
+    "DBINS"   : 36,
+    "ABINS"   : 36,
+}
 def get_pdbCA3(input_file):
     pdb_name = input_file.split('/')[-1].split(".")[0]
     ncaccb_path = os.path.join(out_base_dir, pdb_name, pdb_name + ".ncaccb.npy")
@@ -58,10 +63,8 @@ def get_pair_dist(a, b):
     dist : pytorch tensor of shape [batch,nres,nres]
            stores paitwise distances between atoms in a and b
     """
-    a = torch.from_numpy(a)
-    b = torch.from_numpy(b)
     dist = torch.cdist(a, b, p=2)
-    return dist.numpy()
+    return dist
 
 # ============================================================
 def get_ang(a, b, c):
@@ -77,16 +80,13 @@ def get_ang(a, b, c):
     ang : pytorch tensor of shape [batch,nres]
           stores resulting planar angles
     """
-    a = torch.from_numpy(a)
-    b = torch.from_numpy(b)
-    c = torch.from_numpy(c)
     v = a - b
     w = c - b
     v /= torch.norm(v, dim=-1, keepdim=True)
     w /= torch.norm(w, dim=-1, keepdim=True)
     vw = torch.sum(v*w, dim=-1)
 
-    return torch.acos(vw).numpy()
+    return torch.acos(vw)
 
 # ============================================================
 def get_dih(a, b, c, d):
@@ -102,10 +102,6 @@ def get_dih(a, b, c, d):
     dih : pytorch tensor of shape [batch,nres]
           stores resulting dihedrals
     """
-    a = torch.from_numpy(a)
-    b = torch.from_numpy(b)
-    c = torch.from_numpy(c)
-    d = torch.from_numpy(d)
     b0 = a - b
     b1 = c - b
     b2 = d - c
@@ -118,8 +114,72 @@ def get_dih(a, b, c, d):
     x = torch.sum(v*w, dim=-1)
     y = torch.sum(torch.cross(b1,v,dim=-1)*w, dim=-1)
 
-    return torch.atan2(y, x).numpy()
+    return torch.atan2(y, x)
 
+
+# ============================================================
+def c6d_to_bins2(c6d):
+    """bin 2d distance and orientation maps
+    """
+    dstep = (params['DMAX'] - params['DMIN']) / params['DBINS']
+    astep = 2.0*np.pi / params['ABINS']
+
+    db = torch.round((c6d[...,0]-params['DMIN']-dstep/2)/dstep)
+    ob = torch.round((c6d[...,1]+np.pi-astep/2)/astep)
+    tb = torch.round((c6d[...,2]+np.pi-astep/2)/astep)
+    pb = torch.round((c6d[...,3]-astep/2)/astep)
+
+    # put all d<dmin into one bin
+    db[db<0] = 0
+    
+    # synchronize no-contact bins
+    db[db>params['DBINS']] = params['DBINS']
+    ob[db==params['DBINS']] = params['ABINS']
+    tb[db==params['DBINS']] = params['ABINS']
+    pb[db==params['DBINS']] = params['ABINS']//2
+    
+    return torch.stack([db,ob,tb,pb],axis=-1).long()
+# ============================================================
+def xyz_to_c6d(xyz):
+    """convert cartesian coordinates into 2d distance 
+    and orientation maps
+    
+    Parameters
+    ----------
+    xyz : pytorch tensor of shape [batch,nres,3,3]
+          stores Cartesian coordinates of backbone N,Ca,C atoms
+    Returns
+    -------
+    c6d : pytorch tensor of shape [batch,nres,nres,4]
+          stores stacked dist,omega,theta,phi 2D maps 
+    """
+    
+    nres = xyz.shape[0]
+    # three anchor atoms
+    N  = xyz[:,0]
+    Ca = xyz[:,1]
+    C  = xyz[:,2]
+    Cb = xyz[:,3]
+
+    # 6d coordinates order: (dist,omega,theta,phi)
+    c6d = torch.zeros([nres,nres,4])
+
+    dist = get_pair_dist(Cb,Cb)
+    dist[torch.isnan(dist)] = 999.9
+    c6d[...,0] = dist + 999.9*torch.eye(nres)[None,...]
+    i,j = torch.where(c6d[...,0]<params['DMAX'])
+
+    c6d[i,j,1] = get_dih(Ca[i], Cb[i], Cb[j], Ca[j])
+    c6d[i,j,2] = get_dih(N[i], Ca[i], Cb[i], Cb[j])
+    c6d[i,j,3] = get_ang(Ca[i], Cb[i], Cb[j])
+
+    # fix long-range distances
+    c6d[...,0][c6d[...,0]>=params['DMAX']] = 999.9
+    
+    mask = torch.zeros((nres,nres))
+    mask[i,j] = 1.0
+    c6d = c6d_to_bins2(c6d)
+    return c6d, mask
 
 def process(out_base_dir, pdb):
     pdb_name = pdb.split('/')[-1].split(".")[0]
@@ -177,10 +237,34 @@ def process(out_base_dir, pdb):
         np.save(out_path, mask)
     except Exception as e:
         print(e)
+def process_new(out_base_dir, pdb):
+    pdb_name = pdb.split('/')[-1].split(".")[0]
+    out_dir = os.path.join(out_base_dir, pdb_name)
+    if not os.path.exists(out_dir):
+        os.mkdir(out_dir)
+    out_path = os.path.join(out_dir, pdb_name + ".dis_angle")
+    pdb_name, xyz = get_pdbCA3(pdb.strip())
+    xyz = xyz.reshape(-1, 4, 3)
+    if pdb_name is None:
+        return
+
+    c6d, mask = xyz_to_c6d(torch.from_numpy(xyz).float())
+
+    # c6d[...,:1] = c6d[...,:1]*mask / 20
+    # c6d[...,1:] = c6d[...,1:]*mask / (math.pi * 2)
+    try:
+        c6d = c6d.numpy()
+        mask = mask.numpy()
+        print ("save is", pdb, out_path)
+        np.save(out_path, c6d)
+        out_path = os.path.join(out_dir, pdb_name + ".mask")
+        np.save(out_path, mask)
+    except Exception as e:
+        print(e)
 if __name__ == '__main__':
     out_base_dir = sys.argv[1]
     p = Pool(int(sys.argv[2]))
     for line in open("train-pdb.list"):
-        p.apply_async(process, (out_base_dir, line.strip()))
+        p.apply_async(process_new, (out_base_dir, line.strip()))
     p.close()
     p.join()

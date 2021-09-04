@@ -232,15 +232,19 @@ class Str2Str(nn.Module):
         pair = self.norm_edge(self.embed_e(pair))
         
         # define graph
+        # 这次构图， 用了xyz生成距离信息,但是这个距离信息是为了能够过滤topk的点关系， 可以说是为了降低复杂度
+        # 当然也作为约束信息输入到了图里边
+        # 同时也输入pair信息
+        # 这么说的话， 同时有两种边的特征 
         G = make_graph(xyz, pair, idx, top_k=top_k)
         l1_feats = xyz - xyz[:,:,1,:].unsqueeze(2) # l1 features = displacement vector to CA
-        l1_feats = l1_feats.reshape(B*L, -1, 3)
+        l1_feats = l1_feats.reshape(B*L, -1, 3) # 这个命名也是醉了，明明不就是坐标信息么
         # apply SE(3) Transformer & update coordinates
         shift = self.se3(G, msa.reshape(B*L, -1, 1), l1_feats)
 
-        state = shift['0'].reshape(B, L, -1) # (B, L, C)
+        state = shift['0'].reshape(B, L, -1) # (B, L, C) # 这个是lddt
         
-        offset = shift['1'].reshape(B, L, -1, 3) # (B, L, 3, 3)
+        offset = shift['1'].reshape(B, L, -1, 3) # (B, L, 3, 3) #看使用的意思， 这个因该是偏移了
         CA_new = xyz[:,:,1] + offset[:,:,1]
         N_new = CA_new + offset[:,:,0]
         C_new = CA_new + offset[:,:,2]
@@ -458,21 +462,30 @@ class IterativeFeatureExtractor(nn.Module):
         # input:
         #   msa: initial MSA embeddings (N, L, d_msa)
         #   pair: initial residue pair embeddings (L, L, d_pair)
+        # msa信息， pair信息， onehot信息， idx位置信息
         
         pair_s = list()
         pair = self.initial(pair)
         if self.n_module > 0:
             for i_m in range(self.n_module):
                 # extract features from MSA & update original pair features
+                # 这个是做msa和pair特征的互相参考更新
                 msa, pair = self.iter_block_1[i_m](msa, pair)
-       
+        
+        # 构图生成初始化坐标
         xyz = self.init_str(seq1hot, idx, msa, pair)
 
-        top_ks = [128, 128, 64, 64]
+        # 使用se3进行优化坐标 
+        # 当然， 这一块也对msa和pair进行参考更新
+        # 老样子， msa， pair， index， onehot信息， 一个都不能少
+        # top_ks = [128, 128, 64, 64]
+        top_ks = [16, 16, 8, 8]
         if self.n_module_str > 0:
             for i_m in range(self.n_module_str):
+                # 这个流程中lddt没用到
                 msa, pair, xyz = self.iter_block_2[i_m](msa, pair, xyz, seq1hot, idx, top_k=top_ks[i_m])
-
+        # 再次使用se3优化坐标
+        # 感觉跟上边的iter_block_2没啥区别
         msa, pair, xyz, lddt = self.final(msa, pair, xyz, seq1hot, idx)
 
         return msa[:,0], pair, xyz, lddt

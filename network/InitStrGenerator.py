@@ -87,6 +87,7 @@ class InitStr_Network(nn.Module):
         self.embed_e = nn.Sequential(nn.Linear(edge_dim_in+1, edge_dim_hidden), nn.ELU())
         
         # graph transformer
+        # 半监督的标签传播算法
         blocks = [UniMPBlock(node_dim_hidden,edge_dim_hidden,nheads,dropout) for _ in range(nblocks)]
         self.transformer = nn.Sequential(*blocks)
         
@@ -101,16 +102,16 @@ class InitStr_Network(nn.Module):
         w_seq = self.encoder_seq(msa).reshape(B, L, 1, N).permute(0,3,1,2)
         msa = w_seq*msa
         msa = msa.sum(dim=1)
-        node = torch.cat((msa, seq1hot), dim=-1)
+        node = torch.cat((msa, seq1hot), dim=-1) # 这个应该是把 onehot的信息丰富到msa里边了
         node = self.embed_x(node)
 
-        seqsep = get_seqsep(idx) 
+        seqsep = get_seqsep(idx) # 应该是获取两个氨基酸之间的下标位置信息了
         pair = torch.cat((pair, seqsep), dim=-1)
         pair = self.embed_e(pair)
         
-        G = make_graph(node, idx, pair) # 构造数据
-        Gout = self.transformer(G)
+        G = make_graph(node, idx, pair) # 构造数据,msa作为点特征, pair作为边特征
+        Gout = self.transformer(G) 
         
-        xyz = self.get_xyz(Gout.x)
+        xyz = self.get_xyz(Gout.x) # 节点级别的任务
 
         return xyz.reshape(B, L, 3, 3) #torch.cat([xyz,node_emb],dim=-1)

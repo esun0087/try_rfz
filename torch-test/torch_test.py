@@ -129,6 +129,27 @@ from torch.nn.parameter import Parameter, UninitializedParameter
 # print(nll_loss(sel_value, sel_label))
 
 
-a = torch.randn(1, 10, 3, 3)
-print(a)
-print(a[0, :, 1])
+# a = torch.randn(1, 10, 3, 3)
+# print(a)
+# print(a[0, :, 1])
+
+# 求解距离
+# a = torch.arange(100)
+# b = torch.arange(100, 200)
+# print(a[:, None] - a[None, :])
+
+L = 4
+a = torch.randint(0, 5, ( L,))
+f = nn.Embedding(5, 3)
+# print(a.unsqueeze(1).expand(-1,5))
+b = f(a)
+print(a.shape)
+print(b.shape)
+c=  b.unsqueeze(1).expand(-1,L, -1)
+d = b.unsqueeze(0).expand(L, -1, -1)
+print(b.unsqueeze(1).shape, c.shape)
+print(b.unsqueeze(0).shape, d.shape)
+print(torch.cat([c, d], dim=-1).shape)
+print(c)
+print(d)
+
