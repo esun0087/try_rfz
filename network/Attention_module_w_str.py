@@ -310,16 +310,16 @@ class IterBlock(nn.Module):
         #   pair: initial residue pair embeddings (L, L, d_pair)
             
         # 1. process MSA features
-        msa, att = self.msa2msa(msa)
+        msa, att = self.msa2msa(msa) # 应该是两个方向的更新， 先是位点之间的msa特征关联更新，之后是msa级别的更新
         
         # 2. update pair features using given MSA
-        pair = self.msa2pair(msa, pair, att)
+        pair = self.msa2pair(msa, pair, att) #使用的是位点之间的关系更新，msa级别的数据被归一化了。之后外积看结果
 
         # 3. process pair features
-        pair = self.pair2pair(pair)
+        pair = self.pair2pair(pair) #这个单纯就是attention了
         
         # 4. update MSA features using updated pair features
-        msa = self.pair2msa(pair, msa)
+        msa = self.pair2msa(pair, msa) #这个没细看， 懒得看了。 核心思想就是两者的信息怎么关联
         
 
         return msa, pair

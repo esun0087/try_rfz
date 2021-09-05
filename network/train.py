@@ -38,7 +38,7 @@ MODEL_PARAM ={
         }
 
 SE3_param = {
-        "num_layers"    : 2,
+        "num_layers"    : 1,
         "num_channels"  : 8,
         "num_degrees"   : 2,
         "l0_in_features": 8,
@@ -47,7 +47,7 @@ SE3_param = {
         "l1_out_features": 3,
         "num_edge_features": 8,
         "div": 2,
-        "n_heads": 4
+        "n_heads": 1
         }
 
 REF_param = {
@@ -60,7 +60,7 @@ REF_param = {
         "l1_out_features": 3,
         "num_edge_features": 8,
         "div": 4,
-        "n_heads": 2
+        "n_heads": 1
         }
 MODEL_PARAM['SE3_param'] = SE3_param
 MODEL_PARAM['REF_param'] = REF_param
@@ -177,10 +177,10 @@ class Train():
                 theta_label = theta_label[sel_pos]
                 phi_label = phi_label[sel_pos]
 
-                cross_loss_sum = cross_loss(dis_prob.float(), dis_label)
-                cross_loss_sum += cross_loss(omega_prob.float(), omega_label)
-                cross_loss_sum += cross_loss(theta_prob.float(), theta_label)
-                cross_loss_sum += cross_loss(phi_prob.float(), phi_label)
+                dis_loss = cross_loss(dis_prob.float(), dis_label)
+                oemga_loss = cross_loss(omega_prob.float(), omega_label)
+                theta_loss = cross_loss(theta_prob.float(), theta_label)
+                phi_loss = cross_loss(phi_prob.float(), phi_label)
 
                 xyz = xyz[sel_xyz]
                 xyz_label = xyz_label[sel_xyz]
@@ -194,11 +194,22 @@ class Train():
                 # print(f"lddt is {lddt_sum}")
 
                 # loss = cross_loss_sum + mse_loss_sum
-                # loss = mse_loss_sum
-                loss = cross_loss_sum
-                avg_loss += loss.cpu().detach().numpy()
-                # print(f"=================train epoch {epoch} iter is {i} loss {loss}")
-                loss.backward()
+                # loss = [mse_loss_sum]
+                loss = [\
+                    # dis_loss, \
+                    oemga_loss, \
+                    # theta_loss, \
+                    # phi_loss\
+                    ]
+                sum_loss = sum(loss)
+                avg_loss += sum_loss.cpu().detach().numpy()
+                # loss.backward()
+                if 1:
+                    for i, lo in enumerate(loss):
+                        if i == len(loss) - 1:
+                            lo.backward()
+                        else:
+                            lo.backward(retain_graph=True)
                 optimizer.step()
                 data_cnt += 1
             scheduler.step()
