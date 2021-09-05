@@ -350,30 +350,8 @@ class Train():
         d = [L*np.cos(A), L*np.sin(A)*np.cos(D), -L*np.sin(A)*np.sin(D)]
         return c + sum([m*d for m,d in zip(m,d)])
 
-def get_args():
-    import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-m", dest="model_dir", default="%s/weights"%(script_dir),
-                        help="Path to pre-trained network weights [%s/weights]"%script_dir)
-    parser.add_argument("-i", dest="a3m_fn", required=False,
-                        help="Input multiple sequence alignments (in a3m format)")
-    parser.add_argument("-o", dest="out_prefix", required=False,
-                        help="Prefix for output file. The output files will be [out_prefix].npz and [out_prefix].pdb")
-    parser.add_argument("--hhr", default=None,
-                        help="HHsearch output file (hhr file). If not provided, zero matrices will be given as templates")
-    parser.add_argument("--atab", default=None,
-                        help="HHsearch output file (atab file)")
-    parser.add_argument("--db", default="%s/pdb100_2021Mar03/pdb100_2021Mar03"%script_dir,
-                        help="Path to template database [%s/pdb100_2021Mar03]"%script_dir)
-    parser.add_argument("--cpu", dest='use_cpu', default=False, action='store_true')
-
-    args = parser.parse_args()
-    return args
-
 if __name__ == "__main__":
-    args = get_args()
-
-    train = Train(use_cpu=args.use_cpu)
+    train = Train(use_cpu=True)
     # train.train("./generate_feat/train_data.pickle")
     train.train_with_mask("./generate_feat/train_data.pickle")
     # pred.predict(args.a3m_fn, args.out_prefix, None, args.atab)
