@@ -99,11 +99,14 @@ def process(out_base_dir, pdb):
         return
     if not os.path.exists(out_dir):
         os.mkdir(out_dir)
-    out_path = os.path.join(out_dir, pdb_name + ".ncaccb")
-    fasta = codecs.open(os.path.join(out_base_dir, pdb_name, pdb_name + ".fasta")).readlines()[1].strip()
-    all_coords = np.full((len(fasta), 4 * 3), np.nan)
-    all_coords[sel_idxs] = coords
-    np.save(out_path, all_coords)
+    try:
+        out_path = os.path.join(out_dir, pdb_name + ".ncaccb")
+        fasta = codecs.open(os.path.join(out_base_dir, pdb_name, pdb_name + ".fasta")).readlines()[1].strip()
+        all_coords = np.full((len(fasta), 4 * 3), np.nan)
+        all_coords[sel_idxs] = coords
+        np.save(out_path, all_coords)
+    except Exception as e:
+        print(e)
 if __name__ == '__main__':
     out_base_dir = sys.argv[1]
     p = Pool(int(sys.argv[2]))
