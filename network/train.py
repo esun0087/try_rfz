@@ -88,7 +88,7 @@ fold_params = {
 fold_params["SG"] = fold_params["SG9"]
 
 class Train():
-    def __init__(self, use_cpu=True):
+    def __init__(self, use_cpu=False):
         #
         # define model name
         self.model_name = "RoseTTAFold"
@@ -156,6 +156,9 @@ class Train():
             avg_loss, data_cnt = 0, 0
             for i, data in enumerate(dataloader):
                 feat, label, masks = data
+                feat = [i.to(self.device) for i in feat]
+                label = [i.to(self.device) for i in label]
+                masks = [i.to(self.device) for i in masks]
                 dis_mask, xyz_mask = masks
                 sel_xyz = torch.where(xyz_mask == 1)
                 optimizer.zero_grad()
@@ -362,23 +365,16 @@ def get_args():
                         help="HHsearch output file (atab file)")
     parser.add_argument("--db", default="%s/pdb100_2021Mar03/pdb100_2021Mar03"%script_dir,
                         help="Path to template database [%s/pdb100_2021Mar03]"%script_dir)
-    parser.add_argument("--cpu", dest='use_cpu', default=True, action='store_true')
+    parser.add_argument("--cpu", dest='use_cpu', default=False, action='store_true')
 
     args = parser.parse_args()
     return args
 
 if __name__ == "__main__":
     args = get_args()
-    # FFDB=args.db
-    # FFindexDB = namedtuple("FFindexDB", "index, data")
-    # ffdb = None
-    # ffdb = FFindexDB(read_index(FFDB+'_pdb.ffindex'),
-    #                  read_data(FFDB+'_pdb.ffdata'))
 
-    # if not os.path.exists("%s.npz"%args.out_prefix):
-    if 1:
-        train = Train(use_cpu=args.use_cpu)
-        # train.train("./generate_feat/train_data.pickle")
-        train.train_with_mask("./generate_feat/train_data.pickle")
-        # pred.predict(args.a3m_fn, args.out_prefix, None, args.atab)
+    train = Train(use_cpu=args.use_cpu)
+    # train.train("./generate_feat/train_data.pickle")
+    train.train_with_mask("./generate_feat/train_data.pickle")
+    # pred.predict(args.a3m_fn, args.out_prefix, None, args.atab)
 
