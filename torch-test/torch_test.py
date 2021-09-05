@@ -153,6 +153,49 @@ from torch.nn.parameter import Parameter, UninitializedParameter
 # print(c)
 # print(d)
 
-f = torch.nn.Softmax(-1)
-print(f(torch.randn(2, 8)))
+# f = torch.nn.Softmax(-1)
+# print(f(torch.randn(2, 8)))
 
+
+# a = torch.randn(10,10,5)
+# b = torch.randint(0, 5, (10, 10))
+
+# a = a.view(-1, 5)
+# b = torch.flatten(b)
+# corss_loss = torch.nn.CrossEntropyLoss()
+# loss = corss_loss(a, b)
+# print(loss)
+# f = torch.nn.LogSoftmax(-1)
+# aa = f(a)
+# print(f"LogSoftmax shape {aa.shape}")
+# nll_loss = torch.nn.NLLLoss(reduce = False)
+# aa = nll_loss(aa, b)
+# print(aa)
+
+
+# mask = torch.randn(10,10)
+# mask = torch.flatten(mask)
+# sel = torch.where(mask > 0.5)
+# sel_neg = torch.where(mask <= 0.5)
+# mask[sel] = 1
+# mask[sel_neg] = 0
+
+# mask_value = mask * aa
+# res = torch.mean(mask_value)
+# print(mask_value)
+# print(torch.mean(mask_value))
+
+# a = torch.randn(5, 5)
+# b = torch.randn(5, 5)
+# mask = torch.randn(5,5)
+# sel = torch.where(mask > 0.5)
+# sel_neg = torch.where(mask <= 0.5)
+# mask[sel] = 1
+# mask[sel_neg] = 0
+# mse_loss = torch.nn.MSELoss(reduce=False)
+# c = mse_loss(a, b)
+# c = mask * c
+# print(torch.mean(c))
+
+# a = torch.arange(100).view(-1, 5)
+# print(torch.sum(a, -1))

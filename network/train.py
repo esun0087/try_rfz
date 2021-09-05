@@ -12,6 +12,7 @@ import torch.optim as optim
 from torch.optim import lr_scheduler
 import data_reader
 import lddt_torch
+from torch.nn.utils import clip_grad_norm_
 script_dir = '/'.join(os.path.dirname(os.path.realpath(__file__)).split('/')[:-1])
 
 NBIN = [37, 37, 37, 19]
@@ -101,48 +102,80 @@ class Train():
         # define model & load model
         self.model = RoseTTAFoldModule_e2e(**MODEL_PARAM).to(self.device)
 
-    # 不再用了
-    # def train(self, data_path):
-    #     torch.autograd.set_detect_anomaly(True)
-    #     train_data = data_reader.DataRead(data_path)
-    #     dataloader = torch.utils.data.DataLoader(train_data, batch_size=1, shuffle=True)
-    #     optimizer = optim.SGD(self.model.parameters(), lr=0.0001)
-    #     scheduler = lr_scheduler.MultiStepLR(optimizer, [550, 800], 0.1)
-    #     cross_loss = nn.CrossEntropyLoss()
-    #     mse_loss = torch.nn.MSELoss()
-    #     epoch = 0
-    #     while 1:
-    #         avg_loss, data_cnt = 0, 0
-    #         for i, data in enumerate(dataloader):
-    #             feat, label = data
-    #             optimizer.zero_grad()
-    #             msa, xyz_t, t1d, t0d = feat
-    #             xyz_label, prob_s_label = label
-    #             xyz, lddt, prob_s = self.get_model_result(msa, xyz_t, t1d, t0d)
-    #             # print(f"train prob_s {prob_s.shape} prob_s_label {prob_s_label.shape} xyz {xyz.shape} xyz_label {xyz_label.shape}")
-    #             prob_s_label = torch.flatten(prob_s_label)
-    #             prob_s = prob_s[0]
-    #             prob_s = prob_s.view(-1, 37)
-    #             cross_loss_sum = cross_loss(prob_s.float(), prob_s_label)
-    #             xyz = xyz.view(-1, 3 * 3)
-    #             xyz_label = xyz_label.view(-1, 3 * 3)
-    #             # print(xyz[0], xyz_label[0])
-    #             mse_loss_sum = mse_loss(xyz.float(), xyz_label.float())
-    #             mse_loss_sum = torch.sqrt(mse_loss_sum)
-    #             # lddt_sum = lddt_torch.lddt(xyz.float(), xyz_label.float(), False)
-    #             # print(f"lddt sum {lddt_sum}")
-    #             # loss = cross_loss_sum + mse_loss_sum
-    #             loss = cross_loss_sum
-    #             # loss = mse_loss_sum
-    #             avg_loss += loss.cpu().detach().numpy()
-    #             # print(f"=================train epoch {epoch} iter is {i} loss {loss}")
-    #             loss.backward()
-    #             optimizer.step()
-    #             data_cnt += 1
-    #         # scheduler.step()
-    #         avg_loss = avg_loss / data_cnt
-    #         print(f"=================train epoch {epoch} avg_loss {avg_loss}")
-    #         epoch += 1
+    def cross_loss_mask(self, pred_, true_, mask):
+        pred_ = pred_.view(-1, pred_.shape[-1])
+        true_ = torch.flatten(true_)
+        mask = torch.flatten(mask)
+        log_soft_f = torch.nn.LogSoftmax(-1)
+        nll_loss = torch.nn.NLLLoss(reduction='none')
+        pred_ = log_soft_f(pred_)
+        pred_ = nll_loss(pred_, true_)
+        mask_loss = mask * pred_
+        result = torch.mean(mask_loss)
+        return result
+
+    def mse_loss_mask(self,pred_, true_, mask):
+        mse_loss = torch.nn.MSELoss(reduction='none')
+        select_true_nan = torch.where(torch.isnan(true_))
+        true_[select_true_nan] = 0.0
+        c = mse_loss(pred_, true_)
+        c = torch.sum(c, -1)
+        c = mask * c
+        c = torch.mean(c)
+        c = torch.sqrt(c)
+        return c
+    def train_with_mask_v2(self, data_path):
+        train_data = data_reader.DataRead(data_path)
+        dataloader = torch.utils.data.DataLoader(train_data, batch_size=1, shuffle=True)
+        optimizer = optim.Adam(self.model.parameters(), lr=0.01)
+        scheduler = lr_scheduler.MultiStepLR(optimizer, [200, 500], 0.1)
+        epoch = 0
+        while 1:
+            avg_loss, data_cnt = 0, 0
+            for i, data in enumerate(dataloader):
+                feat, label, masks = data
+                feat = [i.to(self.device) for i in feat]
+                label = [i.to(self.device) for i in label]
+                masks = [i.to(self.device) for i in masks]
+                dis_mask, xyz_mask = masks
+                optimizer.zero_grad()
+                msa, xyz_t, t1d, t0d = feat
+                xyz_label, dis_label, omega_label, theta_label, phi_label  = label
+                xyz, lddt, prob_s = self.get_model_result(msa, xyz_t, t1d, t0d)
+                dis_prob, omega_prob, theta_prob, phi_prob = prob_s
+                batch_size = xyz_label.shape[0]
+
+                dis_loss = self.cross_loss_mask(dis_prob.float(), dis_label, dis_mask)
+                oemga_loss = self.cross_loss_mask(omega_prob.float(), omega_label, dis_mask)
+                theta_loss = self.cross_loss_mask(theta_prob.float(), theta_label, dis_mask)
+                phi_loss = self.cross_loss_mask(phi_prob.float(), phi_label, dis_mask)
+                xyz_loss = self.mse_loss_mask(xyz.view(batch_size, -1, 3 * 3).float(), xyz_label.view(batch_size, -1, 3 * 3).float(), xyz_mask)
+                # lddt_sum = lddt_torch.lddt(xyz.view(1, -1, 3).float(), xyz_label.view(1, -1, 3).float(), False)
+                # print(f"lddt is {lddt_sum}")
+
+                loss = [\
+                    # dis_loss, \
+                    # oemga_loss, \
+                    # theta_loss, \
+                    # phi_loss, \
+                    xyz_loss
+                    ]
+                sum_loss = sum(loss)
+                avg_loss += sum_loss.cpu().detach().numpy()
+                if 1:
+                    for i, lo in enumerate(loss):
+                        if i == len(loss) - 1:
+                            lo.backward()
+                        else:
+                            lo.backward(retain_graph=True)
+                clip_grad_norm_(self.model.parameters(), max_norm=3, norm_type=2)
+                optimizer.step()
+                data_cnt += 1
+            scheduler.step()
+            avg_loss = avg_loss / data_cnt
+            print(f"=================train epoch {epoch} avg_loss {avg_loss} lddt {torch.sum(lddt)}")
+            epoch += 1
+
     def train_with_mask(self, data_path):
         torch.autograd.set_detect_anomaly(True)
         train_data = data_reader.DataRead(data_path)
@@ -200,9 +233,9 @@ class Train():
                 # loss = [mse_loss_sum]
                 loss = [\
                     # dis_loss, \
-                    oemga_loss, \
+                    # oemga_loss, \
                     # theta_loss, \
-                    # phi_loss\
+                    phi_loss\
                     ]
                 sum_loss = sum(loss)
                 avg_loss += sum_loss.cpu().detach().numpy()
@@ -213,6 +246,7 @@ class Train():
                             lo.backward()
                         else:
                             lo.backward(retain_graph=True)
+                clip_grad_norm_(self.model.parameters(), max_norm=3, norm_type=2)
                 optimizer.step()
                 data_cnt += 1
             scheduler.step()
@@ -353,6 +387,7 @@ class Train():
 if __name__ == "__main__":
     train = Train(use_cpu=True)
     # train.train("./generate_feat/train_data.pickle")
-    train.train_with_mask("./generate_feat/train_data.pickle")
+    # train.train_with_mask("./generate_feat/train_data.pickle")
+    train.train_with_mask_v2("./generate_feat/train_data.pickle")
     # pred.predict(args.a3m_fn, args.out_prefix, None, args.atab)
 
