@@ -15,38 +15,8 @@
 """lDDT protein distance score."""
 # import numpy as jnp
 import torch as jnp
+from torch.nn.modules.loss import MSELoss
 
-def lddt_loss(predicted_points,
-                 true_points,
-                 cutoff=20):
-    # Compute true and predicted distance matrices.
-    dmat_true = jnp.sqrt(1e-10 + jnp.sum((true_points[:, :, None] - true_points[:, None, :])**2, axis=-1))
-
-    dmat_predicted = jnp.sqrt(1e-10 + jnp.sum(
-            (predicted_points[:, :, None] -
-             predicted_points[:, None, :])**2, axis=-1))
-
-    dists_to_score = (
-            (dmat_true < cutoff).float() * \
-            (1. - jnp.eye(dmat_true.shape[1]))    # Exclude self-interaction.
-    )
-
-    # Shift unscored distances to be far away.
-    dist_l1 = jnp.abs(dmat_true - dmat_predicted)
-    norm_sum = 1
-    def get_maskv(limit):
-        mask = (dist_l1 < limit).float()
-        
-        return mask * dist_l1, jnp.sum(mask)
-
-    a = [get_maskv(0.5),get_maskv(1.0),get_maskv(2.0),get_maskv(4.0)]
-    dis_scorea = sum([i[0] for i in a])
-    norm_a = sum([i[1] for i in a])
-    norm_a = jnp.sum(norm_a)
-    dis_scorea = 0.25 * dis_scorea
-    dis_scorea = jnp.sum(dis_scorea)
-    dis_scorea = dis_scorea / norm_a
-    return dis_scorea
 def lddt(predicted_points,
                  true_points,
                  cutoff=20.,

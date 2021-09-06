@@ -114,7 +114,7 @@ class Train():
         result = torch.mean(mask_loss)
         return result
 
-    def mse_loss_mask(self,pred_, true_, mask):
+    def coords_loss_mask(self,pred_, true_, mask):
         mse_loss = torch.nn.MSELoss(reduction='none')
         select_true_nan = torch.where(torch.isnan(true_))
         true_[select_true_nan] = 0.0
@@ -124,6 +124,17 @@ class Train():
         c = torch.mean(c)
         c = torch.sqrt(c)
         return c
+    def dis_mse_loss(self, predicted_points, true_points):
+        # Compute true and predicted distance matrices.
+        dmat_true = torch.sqrt(1e-10 + torch.sum((true_points[:, :, None] - true_points[:, None, :])**2, axis=-1))
+
+        dmat_predicted = torch.sqrt(1e-10 + torch.sum(
+                (predicted_points[:, :, None] -
+                predicted_points[:, None, :])**2, axis=-1))
+        mse_loss = torch.nn.MSELoss()
+        loss = mse_loss(dmat_predicted, dmat_true)
+        loss = torch.sqrt(loss)
+        return loss
     def train_with_mask_v2(self, data_path):
         train_data = data_reader.DataRead(data_path)
         dataloader = torch.utils.data.DataLoader(train_data, batch_size=1, shuffle=True)
@@ -149,8 +160,9 @@ class Train():
                 oemga_loss = self.cross_loss_mask(omega_prob.float(), omega_label, dis_mask)
                 theta_loss = self.cross_loss_mask(theta_prob.float(), theta_label, dis_mask)
                 phi_loss = self.cross_loss_mask(phi_prob.float(), phi_label, dis_mask)
-                xyz_loss = self.mse_loss_mask(xyz.view(batch_size, -1, 3 * 3).float(), xyz_label.view(batch_size, -1, 3 * 3).float(), xyz_mask)
-                lddt_loss = lddt_torch.lddt_loss(xyz.view(batch_size, -1 ,3).float(), xyz_label.view(batch_size, -1, 3).float())
+                xyz_loss = self.coords_loss_mask(xyz.view(batch_size, -1, 3 * 3).float(), xyz_label.view(batch_size, -1, 3 * 3).float(), xyz_mask)
+                lddt_loss = lddt_torch.lddt(xyz.view(batch_size, -1 ,3).float(), xyz_label.view(batch_size, -1, 3).float())
+                dis_loss_2 = self.dis_mse_loss(xyz.view(batch_size, -1, 3 * 3).float(), xyz_label.view(batch_size, -1, 3 * 3).float())
 
                 loss = [\
                     # dis_loss, \
@@ -158,7 +170,7 @@ class Train():
                     # theta_loss, \
                     # phi_loss, \
                     # xyz_loss, \
-                    lddt_loss
+                    dis_loss_2
                     ]
                 sum_loss = sum(loss)
                 avg_loss += sum_loss.cpu().detach().numpy()
