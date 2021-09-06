@@ -16,6 +16,37 @@
 # import numpy as jnp
 import torch as jnp
 
+def lddt_loss(predicted_points,
+                 true_points,
+                 cutoff=20):
+    # Compute true and predicted distance matrices.
+    dmat_true = jnp.sqrt(1e-10 + jnp.sum((true_points[:, :, None] - true_points[:, None, :])**2, axis=-1))
+
+    dmat_predicted = jnp.sqrt(1e-10 + jnp.sum(
+            (predicted_points[:, :, None] -
+             predicted_points[:, None, :])**2, axis=-1))
+
+    dists_to_score = (
+            (dmat_true < cutoff).float() * \
+            (1. - jnp.eye(dmat_true.shape[1]))    # Exclude self-interaction.
+    )
+
+    # Shift unscored distances to be far away.
+    dist_l1 = jnp.abs(dmat_true - dmat_predicted)
+    norm_sum = 1
+    def get_maskv(limit):
+        mask = (dist_l1 < limit).float()
+        
+        return mask * dist_l1, jnp.sum(mask)
+
+    a = [get_maskv(0.5),get_maskv(1.0),get_maskv(2.0),get_maskv(4.0)]
+    dis_scorea = sum([i[0] for i in a])
+    norm_a = sum([i[1] for i in a])
+    norm_a = jnp.sum(norm_a)
+    dis_scorea = 0.25 * dis_scorea
+    dis_scorea = jnp.sum(dis_scorea)
+    dis_scorea = dis_scorea / norm_a
+    return dis_scorea
 def lddt(predicted_points,
                  true_points,
                  cutoff=20.,
@@ -65,29 +96,29 @@ def lddt(predicted_points,
     # Shift unscored distances to be far away.
     dist_l1 = jnp.abs(dmat_true - dmat_predicted)
 
+
     # True lDDT uses a number of fixed bins.
     # We ignore the physical plausibility correction to lDDT, though.
     score = 0.25 * ((dist_l1 < 0.5).float()   +
                                     (dist_l1 < 1.0).float()   +
                                     (dist_l1 < 2.0).float()   +
                                     (dist_l1 < 4.0).float()  )
-
     # Normalize over the appropriate axes.
     reduce_axes = (-1,) if per_residue else (-2, -1)
     norm = 1. / (1e-10 + jnp.sum(dists_to_score, axis=reduce_axes))
     score = norm * (1e-10 + jnp.sum(dists_to_score * score, axis=reduce_axes))
 
     return score
-import numpy as np
 if __name__ == '__main__':
 
-    predicted_points = jnp.randn(10, 50, 3)
-    true_points = jnp.randn(10, 50, 3)
+    predicted_points = jnp.randn(3, 5, 3, requires_grad=True)
+    true_points = jnp.randn(3, 5, 3)
     # np.savetxt("p.txt", predicted_points)
     # np.savetxt("t.txt", true_points)
     # pred = np.load("test_lddt_predict.npy")
     # trues = np.load("test_lddt_true.npy")
     # pred = jnp.from_numpy(pred)
     # trues = jnp.from_numpy(trues)
-    print(lddt(predicted_points, true_points, per_residue=False))
-    pass
+    c = lddt(predicted_points, true_points)
+    c = jnp.sum(c)
+    c.backward()

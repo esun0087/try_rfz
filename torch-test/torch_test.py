@@ -199,3 +199,13 @@ from torch.nn.parameter import Parameter, UninitializedParameter
 
 # a = torch.arange(100).view(-1, 5)
 # print(torch.sum(a, -1))
+
+import torch
+x=torch.ones(2,2,requires_grad=True)
+print(x)
+y=x+2
+print(y)
+#如果一个张量不是用户自己创建的，则有grad_fn属性.grad_fn 属性保存着创建了张量的 Function 的引用
+print(y.grad_fn)
+y.backward()
+print(x.grad)

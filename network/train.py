@@ -19,10 +19,10 @@ NBIN = [37, 37, 37, 19]
 
 # 参数都被缩小了，太大了本机跑不动
 MODEL_PARAM ={
-        "n_module"     : 1,
-        "n_module_str" : 1,
-        "n_module_ref" : 1,
-        "n_layer"      : 1,
+        "n_module"     : 1, # IterativeFeatureExtractor使用，用于迭代更新msa和pair的相互参考信息
+        "n_module_str" : 1, # IterativeFeatureExtractor使用， 用于se3更新坐标和msa以及pair的信息,这是第一次更新。
+        "n_module_ref" : 1, # Refine_module 使用， 也是为了se3更新坐标和msa以及pair的信息， 这个要迭代200次， 但是为了测试， 只迭代1次,这个过程中topk为64
+        "n_layer"      : 1, # IterativeFeatureExtractor使用，
         "d_msa"        : 8 ,
         "d_pair"       : 8,
         "d_templ"      : 8,
@@ -127,7 +127,7 @@ class Train():
     def train_with_mask_v2(self, data_path):
         train_data = data_reader.DataRead(data_path)
         dataloader = torch.utils.data.DataLoader(train_data, batch_size=1, shuffle=True)
-        optimizer = optim.Adam(self.model.parameters(), lr=0.01)
+        optimizer = optim.Adam(self.model.parameters(), lr=0.001)
         scheduler = lr_scheduler.MultiStepLR(optimizer, [200, 500], 0.1)
         epoch = 0
         while 1:
@@ -150,15 +150,15 @@ class Train():
                 theta_loss = self.cross_loss_mask(theta_prob.float(), theta_label, dis_mask)
                 phi_loss = self.cross_loss_mask(phi_prob.float(), phi_label, dis_mask)
                 xyz_loss = self.mse_loss_mask(xyz.view(batch_size, -1, 3 * 3).float(), xyz_label.view(batch_size, -1, 3 * 3).float(), xyz_mask)
-                # lddt_sum = lddt_torch.lddt(xyz.view(1, -1, 3).float(), xyz_label.view(1, -1, 3).float(), False)
-                # print(f"lddt is {lddt_sum}")
+                lddt_loss = lddt_torch.lddt_loss(xyz.view(batch_size, -1 ,3).float(), xyz_label.view(batch_size, -1, 3).float())
 
                 loss = [\
                     # dis_loss, \
                     # oemga_loss, \
                     # theta_loss, \
                     # phi_loss, \
-                    xyz_loss
+                    # xyz_loss, \
+                    lddt_loss
                     ]
                 sum_loss = sum(loss)
                 avg_loss += sum_loss.cpu().detach().numpy()
@@ -173,14 +173,14 @@ class Train():
                 data_cnt += 1
             scheduler.step()
             avg_loss = avg_loss / data_cnt
-            print(f"=================train epoch {epoch} avg_loss {avg_loss} lddt {torch.sum(lddt)}")
+            print(f"=================train epoch {epoch} avg_loss {avg_loss} lddt {lddt_loss}")
             epoch += 1
 
     def train_with_mask(self, data_path):
         torch.autograd.set_detect_anomaly(True)
         train_data = data_reader.DataRead(data_path)
         dataloader = torch.utils.data.DataLoader(train_data, batch_size=1, shuffle=True)
-        optimizer = optim.Adam(self.model.parameters(), lr=0.01)
+        optimizer = optim.Adam(self.model.parameters(), lr=0.001)
         scheduler = lr_scheduler.MultiStepLR(optimizer, [200, 500], 0.1)
         cross_loss = nn.CrossEntropyLoss()
         mse_loss = torch.nn.MSELoss()
@@ -335,8 +335,6 @@ class Train():
         logit_s = list(logit_s)
         for i, v in enumerate(logit_s):
             logit_s[i] = v.permute(0,2,3,1)
-        # prob_s = logit_s[0].float()
-        # prob_s = prob_s.permute(0,2,3,1)
         return xyz, lddt, logit_s # 目前只知道距离的计算方法，还不知道角度的计算方法
     def for_fold(self, prob_s, xyz):
         # run TRFold
