@@ -114,14 +114,13 @@ class Train():
         result = torch.mean(mask_loss)
         return result
 
-    def coords_loss_mask(self,pred_, true_, mask):
-        mse_loss = torch.nn.MSELoss(reduction='none')
-        select_true_nan = torch.where(torch.isnan(true_))
-        true_[select_true_nan] = 0.0
+    def coords_loss_mask(self,pred_, true_):
+        mse_loss = torch.nn.MSELoss()
+        cur_mask = (torch.isnan(true_)).float()
+        cur_mask = 1 - cur_mask
+        true_ = cur_mask * true_
+        pred_ = cur_mask * pred_
         c = mse_loss(pred_, true_)
-        c = torch.sum(c, -1)
-        c = mask * c
-        c = torch.mean(c)
         c = torch.sqrt(c)
         return c
     def dis_mse_loss(self, predicted_points, true_points):
@@ -131,6 +130,10 @@ class Train():
         dmat_predicted = torch.sqrt(1e-10 + torch.sum(
                 (predicted_points[:, :, None] -
                 predicted_points[:, None, :])**2, axis=-1))
+        mask = (dmat_true < 15).float()
+        
+        dmat_true = mask * dmat_true
+        dmat_predicted = mask * dmat_predicted
         mse_loss = torch.nn.MSELoss()
         loss = mse_loss(dmat_predicted, dmat_true)
         loss = torch.sqrt(loss)
@@ -160,9 +163,9 @@ class Train():
                 oemga_loss = self.cross_loss_mask(omega_prob.float(), omega_label, dis_mask)
                 theta_loss = self.cross_loss_mask(theta_prob.float(), theta_label, dis_mask)
                 phi_loss = self.cross_loss_mask(phi_prob.float(), phi_label, dis_mask)
-                xyz_loss = self.coords_loss_mask(xyz.view(batch_size, -1, 3 * 3).float(), xyz_label.view(batch_size, -1, 3 * 3).float(), xyz_mask)
-                lddt_loss = lddt_torch.lddt(xyz.view(batch_size, -1 ,3).float(), xyz_label.view(batch_size, -1, 3).float())
-                dis_loss_2 = self.dis_mse_loss(xyz.view(batch_size, -1, 3 * 3).float(), xyz_label.view(batch_size, -1, 3 * 3).float())
+                xyz_loss = self.coords_loss_mask(xyz.view(batch_size, -1, 3).float(), xyz_label.view(batch_size, -1, 3).float())
+                dis_loss_2 = self.dis_mse_loss(xyz.view(batch_size, -1, 3).float(), xyz_label.view(batch_size, -1, 3).float())
+                lddt_result = lddt_torch.lddt(xyz.view(batch_size, -1 ,3).float(), xyz_label.view(batch_size, -1, 3).float())
 
                 loss = [\
                     # dis_loss, \
@@ -185,7 +188,7 @@ class Train():
                 data_cnt += 1
             scheduler.step()
             avg_loss = avg_loss / data_cnt
-            print(f"=================train epoch {epoch} avg_loss {avg_loss} lddt {lddt_loss}")
+            print(f"=================train epoch {epoch} avg_loss {avg_loss} lddt {lddt_result}")
             epoch += 1
 
     def train_with_mask(self, data_path):
