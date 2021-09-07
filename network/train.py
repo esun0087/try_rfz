@@ -131,7 +131,7 @@ class Train():
                 (predicted_points[:, :, None] -
                 predicted_points[:, None, :])**2, axis=-1))
         mask = (dmat_true < 15).float()
-        
+
         dmat_true = mask * dmat_true
         dmat_predicted = mask * dmat_predicted
         mse_loss = torch.nn.MSELoss()
@@ -151,7 +151,7 @@ class Train():
                 feat = [i.to(self.device) for i in feat]
                 label = [i.to(self.device) for i in label]
                 masks = [i.to(self.device) for i in masks]
-                dis_mask, xyz_mask = masks
+                dis_mask, = masks
                 optimizer.zero_grad()
                 msa, xyz_t, t1d, t0d = feat
                 xyz_label, dis_label, omega_label, theta_label, phi_label  = label

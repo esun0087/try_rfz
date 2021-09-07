@@ -157,9 +157,7 @@ def read_data_forsave(data_path):
         # prob_s_label = read_dis(os.path.join(seq_feat_path, seq_name + ".dis.npy"))
         prob_s_label_2 = read_dis_angle(os.path.join(seq_feat_path, seq_name + ".dis_angle.npy"))
         dis_masks = read_mask(os.path.join(seq_feat_path, seq_name + ".mask.npy"))
-        xyz_mask = np.zeros(L)
         sel_xyz = np.unique(np.where(~np.isnan(xyz_label.reshape(-1, 3*3)))[0])
-        xyz_mask[sel_xyz] = 1
         # label = torch.from_numpy(xyz_label).float(), torch.from_numpy(prob_s_label).long()
         label = []
         label.append(torch.from_numpy(xyz_label).float())
@@ -167,8 +165,6 @@ def read_data_forsave(data_path):
 
         masks = []
         masks.append(torch.from_numpy(dis_masks).long())
-        masks.append(torch.from_numpy(xyz_mask).long())
-
         feat = torch.from_numpy(msa).long(), xyz_t, t1d, t0d
 
         print(f"debug {seq_name} msa {torch.from_numpy(msa).shape} xyz_t {xyz_t.shape} \
