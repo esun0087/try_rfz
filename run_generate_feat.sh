@@ -30,14 +30,14 @@ fi
 ############################################################
 # 3. search for templates
 ############################################################
-DB="/mnt/e/study/RoseTTAFold-Train/data/uniclust30_2016_09/uniclust30_2016_09"
-if [ ! -s $WDIR/t000_.hhr ]
-then
-    echo "Running hhsearch"
-    HH="hhsearch -b 50 -B 500 -z 50 -Z 500 -mact 0.05 -cpu $CPU -maxmem $MEM -aliw 100000 -e 100 -p 5.0 -d $DB"
-    cat $WDIR/t000_.msa0.a3m > $WDIR/t000_.msa0.ss2.a3m
-    $HH -i $WDIR/t000_.msa0.ss2.a3m -o $WDIR/t000_.hhr -atab $WDIR/t000_.atab -v 0 > $WDIR/log/hhsearch.stdout 2> $WDIR/log/hhsearch.stderr
-fi
+# DB="/mnt/e/study/RoseTTAFold-Train/data/uniclust30_2016_09/uniclust30_2016_09"
+# if [ ! -s $WDIR/t000_.hhr ]
+# then
+#     echo "Running hhsearch"
+#     HH="hhsearch -b 50 -B 500 -z 50 -Z 500 -mact 0.05 -cpu $CPU -maxmem $MEM -aliw 100000 -e 100 -p 5.0 -d $DB"
+#     cat $WDIR/t000_.msa0.a3m > $WDIR/t000_.msa0.ss2.a3m
+#     $HH -i $WDIR/t000_.msa0.ss2.a3m -o $WDIR/t000_.hhr -atab $WDIR/t000_.atab -v 0 > $WDIR/log/hhsearch.stdout 2> $WDIR/log/hhsearch.stderr
+# fi
 
 ############################################################
 # 3. search for templates

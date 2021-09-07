@@ -3,7 +3,7 @@ import os
 import sys
 
 def check_file_ok(seq_feat_path, seq_name):
-    files = ["t000_.msa0.a3m", "t000_.hhr", "t000_.atab", seq_name + ".xyz.npy", seq_name + ".dis.npy", seq_name + ".dis_angle.npy", seq_name + ".mask.npy"]
+    files = ["t000_.msa0.a3m", "t000_.hhr", "t000_.atab", seq_name + ".xyz.npy", seq_name + ".dis_angle.npy", seq_name + ".mask.npy"]
     return all([os.path.exists(os.path.join(seq_feat_path, i)) for i in files])
 if __name__ == '__main__':
     base_data_dir = sys.argv[1]

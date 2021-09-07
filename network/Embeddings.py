@@ -101,6 +101,7 @@ class Templ_emb(nn.Module):
         left = t1d.unsqueeze(3).expand(-1,-1,-1,L,-1)
         right = t1d.unsqueeze(2).expand(-1,-1,L,-1,-1)
         seqsep = torch.abs(idx[:,:,None]-idx[:,None,:]) + 1
+        seqsep.float().view(B,L,L,1)
         seqsep = torch.log(seqsep.float()).view(B,L,L,1).unsqueeze(1).expand(-1,T,-1,-1,-1)
         #
         feat = torch.cat((t2d, left, right, seqsep), -1)

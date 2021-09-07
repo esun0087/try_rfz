@@ -201,11 +201,28 @@ from torch.nn.parameter import Parameter, UninitializedParameter
 # print(torch.sum(a, -1))
 
 import torch
-x=torch.ones(2,2,requires_grad=True)
-print(x)
-y=x+2
-print(y)
-#如果一个张量不是用户自己创建的，则有grad_fn属性.grad_fn 属性保存着创建了张量的 Function 的引用
-print(y.grad_fn)
-y.backward()
-print(x.grad)
+# x=torch.ones(2,2,requires_grad=True)
+# print(x)
+# y=x+2
+# print(y)
+# #如果一个张量不是用户自己创建的，则有grad_fn属性.grad_fn 属性保存着创建了张量的 Function 的引用
+# print(y.grad_fn)
+# y.backward()
+# print(x.grad)
+
+# L = 10
+# B = 2
+# idx_pdb = torch.arange(L).long()
+# print(idx_pdb.expand((B, L)))
+
+a = torch.randint(0, 10, (2,2, 5)).float()
+print("a is ", a)
+print("mean is ", a.mean(-1))
+pick = a.mean(-1).argmax(1)
+batchs_idx = torch.arange(2).long()
+print(f"pick {pick}")
+print("final is ", a[batchs_idx,pick])
+
+# a = torch.randint(0, 10, (5,)).float()
+# print(a)
+# print(torch.clamp(a, 2, 5))

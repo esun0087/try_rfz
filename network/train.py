@@ -103,13 +103,14 @@ class Train():
         self.model = RoseTTAFoldModule_e2e(**MODEL_PARAM).to(self.device)
 
     def cross_loss_mask(self, pred_, true_, mask):
-        pred_ = pred_.view(-1, pred_.shape[-1])
+        pred_ = pred_.reshape(-1, pred_.shape[-1])
         true_ = torch.flatten(true_)
         mask = torch.flatten(mask)
-        log_soft_f = torch.nn.LogSoftmax(-1)
-        nll_loss = torch.nn.NLLLoss(reduction='none')
-        pred_ = log_soft_f(pred_)
-        pred_ = nll_loss(pred_, true_)
+        cross_func = torch.nn.CrossEntropyLoss(reduction='none')
+        # log_soft_f = torch.nn.LogSoftmax(-1)
+        # nll_loss = torch.nn.NLLLoss(reduction='none')
+        # pred_ = log_soft_f(pred_)
+        pred_ = cross_func(pred_, true_)
         mask_loss = mask * pred_
         result = torch.mean(mask_loss)
         return result
@@ -140,7 +141,7 @@ class Train():
         return loss
     def train_with_mask_v2(self, data_path):
         train_data = data_reader.DataRead(data_path)
-        dataloader = torch.utils.data.DataLoader(train_data, batch_size=1, shuffle=True)
+        dataloader = torch.utils.data.DataLoader(train_data, batch_size=2, shuffle=True, collate_fn=data_reader.collate_batch_data)
         optimizer = optim.Adam(self.model.parameters(), lr=0.001)
         scheduler = lr_scheduler.MultiStepLR(optimizer, [200, 500], 0.1)
         epoch = 0
@@ -150,22 +151,23 @@ class Train():
                 feat, label, masks = data
                 feat = [i.to(self.device) for i in feat]
                 label = [i.to(self.device) for i in label]
-                masks = [i.to(self.device) for i in masks]
-                dis_mask, = masks
+                dis_mask = masks.to(self.device)
                 optimizer.zero_grad()
                 msa, xyz_t, t1d, t0d = feat
                 xyz_label, dis_label, omega_label, theta_label, phi_label  = label
                 xyz, lddt, prob_s = self.get_model_result(msa, xyz_t, t1d, t0d)
                 dis_prob, omega_prob, theta_prob, phi_prob = prob_s
                 batch_size = xyz_label.shape[0]
+                print("xyz label shape", xyz_label.shape, "xyz shape", xyz.shape)
 
                 dis_loss = self.cross_loss_mask(dis_prob.float(), dis_label, dis_mask)
                 oemga_loss = self.cross_loss_mask(omega_prob.float(), omega_label, dis_mask)
                 theta_loss = self.cross_loss_mask(theta_prob.float(), theta_label, dis_mask)
                 phi_loss = self.cross_loss_mask(phi_prob.float(), phi_label, dis_mask)
-                xyz_loss = self.coords_loss_mask(xyz.view(batch_size, -1, 3).float(), xyz_label.view(batch_size, -1, 3).float())
-                dis_loss_2 = self.dis_mse_loss(xyz.view(batch_size, -1, 3).float(), xyz_label.view(batch_size, -1, 3).float())
-                lddt_result = lddt_torch.lddt(xyz.view(batch_size, -1 ,3).float(), xyz_label.view(batch_size, -1, 3).float())
+                xyz = xyz.view(batch_size, -1, 3)
+                xyz_loss = self.coords_loss_mask(xyz.float(), xyz_label.float())
+                dis_loss_2 = self.dis_mse_loss(xyz.float(), xyz_label.float())
+                lddt_result = lddt_torch.lddt(xyz.float(), xyz_label.float())
 
                 loss = [\
                     # dis_loss, \
@@ -339,7 +341,7 @@ class Train():
         return xyz, lddt, prob_s
     def for_single(self, msa, t0d, t1d, t2d):
         B, N, L = msa.shape
-        idx_pdb = torch.arange(L).long().view(1, L)
+        idx_pdb = torch.arange(L).long().expand((B, L))
         msa = msa[:,:1000].to(self.device)
         seq = msa[:,0]
         idx_pdb = idx_pdb.to(self.device)

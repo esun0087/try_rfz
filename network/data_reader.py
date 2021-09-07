@@ -8,6 +8,7 @@ import codecs
 from parsers import parse_a3m, read_templates
 import os
 import get_true_pdb_name
+import pickle
 def read_data_mock(data_path):
     data = []
     for i in range(10):
@@ -115,6 +116,7 @@ def read_data_true_mask(data_path):
     
     train_data = []
     for feat, label, masks in data:
+        # msa, xyz_t, t1d, t0d = feat
         feat_new = [torch.tensor(f).float() for f in feat]
         feat_new[0] = feat_new[0].long()
         print(f"data shape {feat_new[0].shape}", )
@@ -122,11 +124,115 @@ def read_data_true_mask(data_path):
         label_new.append(torch.tensor(label[0]).float()) # xyz
         label_new.extend([torch.tensor(i).long() for i in label[1:]])
 
-        masks_new = [torch.tensor(i).long() for i in masks]
-        train_data.append((tuple(feat_new), tuple(label_new), tuple(masks_new)))
+        masks_new = torch.tensor(masks).long()
+        train_data.append((tuple(feat_new), tuple(label_new), masks_new))
     f.close()
     print("data reader over")
     return train_data
+
+def collate_batch_data(batch_dic):
+    max_seq_length = max([feat[0].shape[1] for feat, label, masks in batch_dic]) # 一批数据中最长的那个样本长度
+    max_msa_len = max([feat[0].shape[0] for feat, label, masks in batch_dic]) # 一批数据中最长的那个样本长度
+    # print(f"collate_batch_data max_msa_len {max_msa_len} max_seq_length {max_seq_length}")
+
+    def feat_extend(feat):
+        msa, xyz_t, t1d, t0d = feat
+
+        msa_new = np.full((max_msa_len, max_seq_length), 20)
+        msa_new[:msa.shape[0], :msa.shape[1]] = msa
+
+        xyz_new = np.full((10, max_seq_length, 3, 3), np.nan)
+        xyz_new[:,:xyz_t.shape[1]] = xyz_t
+
+        t1d_new = np.full((10, max_seq_length, 3), np.nan)
+        t1d_new[:,:t1d.shape[1]] = t1d
+
+        t0d = t0d.numpy()
+
+        return (msa_new, xyz_new, t1d_new, t0d)
+    def label_extend(labels):
+        """
+        xyz
+        dis
+        oemga
+        theta
+        phi
+        """
+        xyz_label, dis_label, omege_label, theta_label, phi_label = labels
+        cur_seq_len = omege_label.shape[0]
+        print("debug", xyz_label.shape,omege_label.shape)
+
+        xyz_new_label = np.full((max_seq_length * 3, 3), np.nan)
+        xyz_new_label[:cur_seq_len * 3] = xyz_label
+
+        dis_new_label = np.full((max_seq_length, max_seq_length), 0)
+        dis_new_label[:cur_seq_len, :cur_seq_len] = dis_label 
+
+        omega_new_label = np.full((max_seq_length, max_seq_length), 0)
+        omega_new_label[:cur_seq_len, :cur_seq_len] = omege_label 
+
+        theta_new_label = np.full((max_seq_length, max_seq_length), 0)
+        theta_new_label[:cur_seq_len, :cur_seq_len] = theta_label
+
+        phi_new_label = np.full((max_seq_length, max_seq_length), 0)
+        phi_new_label[:cur_seq_len, :cur_seq_len] = phi_label
+        return [xyz_new_label, dis_new_label, omega_new_label, theta_new_label, phi_new_label]
+
+    def masks_extend(masks):
+        mask_new = np.full((max_seq_length, max_seq_length), 0.0)
+        cur_seq_len = masks.shape[0]
+        mask_new[:cur_seq_len, :cur_seq_len] = masks 
+        return mask_new
+
+    def split_feats(feats):
+        msas = []
+        xyz_ts = []
+        t1ds = []
+        t0ds = []
+        for msa, xyz_t, t1d, t0d in feats:
+            msas.append(msa)
+            xyz_ts.append(xyz_t)
+            t1ds.append(t1d)
+            t0ds.append(t0d)
+        msas = torch.tensor(msas).long()
+        xyz_ts = torch.tensor(xyz_ts).float()
+        t1ds = torch.tensor(t1ds).float()
+        t0ds = torch.tensor(t0ds).float()
+        return msas, xyz_ts, t1ds, t0ds
+    def split_labels(labels):
+        xyz_labels, dis_labels, omege_labels, theta_labels, phi_labels = [],[],[],[],[]
+        for xyz_label, dis_label, omege_label, theta_label, phi_label in labels:
+            xyz_labels.append(xyz_label)
+            dis_labels.append(dis_label)
+            omege_labels.append(omege_label)
+            theta_labels.append(theta_label)
+            phi_labels.append(phi_label)
+
+        xyz_labels = torch.tensor(xyz_labels).float()
+        dis_labels = torch.tensor(dis_labels).long()
+        omege_labels = torch.tensor(omege_labels).long()
+        theta_labels = torch.tensor(theta_labels).long()
+        phi_labels = torch.tensor(phi_labels).long()
+
+        return xyz_labels, dis_labels, omege_labels, theta_labels, phi_labels
+
+    feat_batch=[]
+    label_batch=[]
+    masks_batch=[]
+    for i in range(len(batch_dic)): 
+        feat, label, masks = batch_dic[i]
+        # msa, xyz_t, t1d, t0d = feat
+        feat = feat_extend(feat)
+        label = label_extend(label)
+
+        feat_batch.append(feat)
+        label_batch.append(label)
+        masks = masks_extend(masks)
+        masks_batch.append(masks)
+    feat_batch = split_feats(feat_batch)
+    label_batch = split_labels(label_batch)
+    masks_batch = torch.tensor(masks_batch)
+    return feat_batch, label_batch, masks_batch
 def read_data_forsave(data_path):
     FFDB="pdb100_2021Mar03/pdb100_2021Mar03/pdb100_2021Mar03"
     FFindexDB = namedtuple("FFindexDB", "index, data")
@@ -135,7 +241,7 @@ def read_data_forsave(data_path):
                      read_data(FFDB+'_pdb.ffdata'))
     data = []
     def check_file_ok(seq_feat_path, seq_name):
-        files = ["t000_.msa0.a3m", "t000_.hhr", "t000_.atab", seq_name + ".xyz.npy", seq_name + ".dis.npy", seq_name + ".dis_angle.npy", seq_name + ".mask.npy"]
+        files = ["t000_.msa0.a3m", "t000_.hhr", "t000_.atab", seq_name + ".xyz.npy", seq_name + ".dis_angle.npy", seq_name + ".mask.npy"]
         return all([os.path.exists(os.path.join(seq_feat_path, i)) for i in files])
     for line in codecs.open(data_path):
         # if len(data) >= 10:
@@ -154,17 +260,13 @@ def read_data_forsave(data_path):
             continue
         # print(seq_name,seq_feat_path)
         xyz_label = read_xyz(os.path.join(seq_feat_path, seq_name + ".xyz.npy"))
-        # prob_s_label = read_dis(os.path.join(seq_feat_path, seq_name + ".dis.npy"))
         prob_s_label_2 = read_dis_angle(os.path.join(seq_feat_path, seq_name + ".dis_angle.npy"))
         dis_masks = read_mask(os.path.join(seq_feat_path, seq_name + ".mask.npy"))
-        sel_xyz = np.unique(np.where(~np.isnan(xyz_label.reshape(-1, 3*3)))[0])
-        # label = torch.from_numpy(xyz_label).float(), torch.from_numpy(prob_s_label).long()
         label = []
         label.append(torch.from_numpy(xyz_label).float())
         label.extend([torch.from_numpy(i) for i in prob_s_label_2])
 
-        masks = []
-        masks.append(torch.from_numpy(dis_masks).long())
+        masks = torch.from_numpy(dis_masks).long()
         feat = torch.from_numpy(msa).long(), xyz_t, t1d, t0d
 
         print(f"debug {seq_name} msa {torch.from_numpy(msa).shape} xyz_t {xyz_t.shape} \
@@ -187,8 +289,8 @@ class DataRead(Dataset):
     def __getitem__(self, index):
         return self.data[index]
 
-import pickle
-if __name__ == '__main__':
+
+def save_train2pickle():
     data = read_data_forsave("./generate_feat/train-feat.list")
     data_new = []
     for feat, label, masks in data:
@@ -206,3 +308,14 @@ if __name__ == '__main__':
         data_new.append((feat_new, label_new, masks_new))
     with open("./generate_feat/train_data.pickle", "wb") as f:
         pickle.dump(data_new, f)
+
+def test_dataloader():
+    train_data = DataRead("./generate_feat/train_data.pickle")
+    dataloader = torch.utils.data.DataLoader(train_data, batch_size=2, shuffle=True, collate_fn=collate_batch_data)
+    for i, data in enumerate(dataloader):
+        # print(data)
+        feat, label, masks = data
+        print(len(feat[0]))
+if __name__ == '__main__':
+    # save_train2pickle()
+    test_dataloader()

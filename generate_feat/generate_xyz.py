@@ -88,8 +88,6 @@ def pdb2coords2(input_file):
 def process(out_base_dir, pdb):
     pdb_name, coords, sel_idxs = pdb2coords2(pdb.strip())
 
-    x = coords.reshape(-1, 3,3).transpose(0, 2, 1)
-    print(x.shape, x[0,1,:])
     if pdb_name is None:
         return
     out_dir = os.path.join(out_base_dir, pdb_name)
@@ -103,6 +101,7 @@ def process(out_base_dir, pdb):
         all_coords[sel_idxs] = coords
     except Exception as e:
         print(e)
+    all_coords = all_coords.reshape(-1, 3)
     np.save(out_path, all_coords)
 if __name__ == '__main__':
     out_base_dir = sys.argv[1]
