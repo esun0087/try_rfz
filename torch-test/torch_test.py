@@ -215,14 +215,28 @@ import torch
 # idx_pdb = torch.arange(L).long()
 # print(idx_pdb.expand((B, L)))
 
-a = torch.randint(0, 10, (2,2, 5)).float()
-print("a is ", a)
-print("mean is ", a.mean(-1))
-pick = a.mean(-1).argmax(1)
-batchs_idx = torch.arange(2).long()
-print(f"pick {pick}")
-print("final is ", a[batchs_idx,pick])
+# a = torch.randint(0, 10, (2,2, 5)).float()
+# print("a is ", a)
+# print("mean is ", a.mean(-1))
+# pick = a.mean(-1).argmax(1)
+# batchs_idx = torch.arange(2).long()
+# print(f"pick {pick}")
+# print("final is ", a[batchs_idx,pick])
 
 # a = torch.randint(0, 10, (5,)).float()
 # print(a)
 # print(torch.clamp(a, 2, 5))
+
+# x = torch.FloatTensor(torch.randn((10,10)))
+# y = torch.FloatTensor(torch.randn((10,10)))
+
+# tmp = torch.sum(x * y)
+# normx = torch.sqrt(torch.sum(x * x)) * torch.sqrt(torch.sum(y * y))
+# similarity = torch.cosine_similarity(x, y, dim = 0)
+ 
+# print(torch.sum(similarity), tmp / normx)
+# import numpy as np
+# print(np.nan < 14)
+
+a = torch.arange(12).reshape(-1, 3).float()
+print(torch.mean(a, -1))

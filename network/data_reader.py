@@ -119,7 +119,7 @@ def read_data_true_mask(data_path):
         # msa, xyz_t, t1d, t0d = feat
         feat_new = [torch.tensor(f).float() for f in feat]
         feat_new[0] = feat_new[0].long()
-        print(f"data shape {feat_new[0].shape}", )
+        # print(f"data shape {feat_new[0].shape}", )
         label_new = []
         label_new.append(torch.tensor(label[0]).float()) # xyz
         label_new.extend([torch.tensor(i).long() for i in label[1:]])
@@ -160,7 +160,7 @@ def collate_batch_data(batch_dic):
         """
         xyz_label, dis_label, omege_label, theta_label, phi_label = labels
         cur_seq_len = omege_label.shape[0]
-        print("debug", xyz_label.shape,omege_label.shape)
+        # print("debug", xyz_label.shape,omege_label.shape)
 
         xyz_new_label = np.full((max_seq_length * 3, 3), np.nan)
         xyz_new_label[:cur_seq_len * 3] = xyz_label
@@ -317,5 +317,5 @@ def test_dataloader():
         feat, label, masks = data
         print(len(feat[0]))
 if __name__ == '__main__':
-    # save_train2pickle()
-    test_dataloader()
+    save_train2pickle()
+    # test_dataloader()

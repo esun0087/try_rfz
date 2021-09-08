@@ -133,7 +133,7 @@ class Refine_module(nn.Module):
         edge = self.proj_edge(edge)
 
         xyz, state = self.regen_net(seq1hot, idx, node, edge)
-        print(f"region net xyz {xyz.shape} state {state.shape} input seq1hot {seq1hot.shape} idx {idx.shape} edge {edge.shape}", )
+        # print(f"region net xyz {xyz.shape} state {state.shape} input seq1hot {seq1hot.shape} idx {idx.shape} edge {edge.shape}", )
         B, L = xyz.shape[:2]
        
         # DOUBLE IT w/ Mirror images
@@ -146,7 +146,7 @@ class Refine_module(nn.Module):
 
         best_xyz = xyz
         best_lddt = torch.zeros((xyz.shape[0], xyz.shape[1], 1), device=xyz.device)
-        print(f"init refine_net xyz {xyz.shape} state {state.shape} node {node.shape} edge {edge.shape} idx {idx.shape} seq1hot {seq1hot.shape} best_lddt {best_lddt.shape}")
+        # print(f"init refine_net xyz {xyz.shape} state {state.shape} node {node.shape} edge {edge.shape} idx {idx.shape} seq1hot {seq1hot.shape} best_lddt {best_lddt.shape}")
         prev_lddt = 0.0
         no_impr = 0
         no_impr_best = 0
@@ -156,14 +156,14 @@ class Refine_module(nn.Module):
                 if use_transf_checkpoint:
                     xyz, state = checkpoint.checkpoint(create_custom_forward(self.refine_net[i_m], top_k=64), node.float(), edge.float(), xyz.detach().float(), state.float(), seq1hot, idx)
                 else:
-                    print(f"in refine_net xyz {xyz.shape} state {state.shape} seq1hot {seq1hot.shape} idx {idx.shape} node {node.shape}")
+                    # print(f"in refine_net xyz {xyz.shape} state {state.shape} seq1hot {seq1hot.shape} idx {idx.shape} node {node.shape}")
                     xyz, state = self.refine_net[i_m](node.float(), edge.float(), xyz.detach().float(), state.float(), seq1hot, idx, top_k=64)
-                    print(f"out refine_net xyz {xyz.shape} state {state.shape}")
+                    # print(f"out refine_net xyz {xyz.shape} state {state.shape}")
             #
             lddt = self.pred_lddt(self.norm_state(state)) 
-            print(f"before lddt {lddt.shape}")
+            # print(f"before lddt {lddt.shape}")
             lddt = torch.clamp(lddt, 0.0, 1.0)[...,0]
-            print(f"after lddt {lddt.shape}")
+            # print(f"after lddt {lddt.shape}")
             if lddt.mean(-1).max() <= prev_lddt+eps:
                 no_impr += 1
             else:
@@ -174,7 +174,7 @@ class Refine_module(nn.Module):
                 no_impr_best = 0
             if no_impr > 10 or no_impr_best > 20:
                 break
-            print(f"ldd shape {lddt.shape} lddt mean {lddt.mean(-1).shape}" )
+            # print(f"ldd shape {lddt.shape} lddt mean {lddt.mean(-1).shape}" )
             if lddt.mean(-1).max() > best_lddt.mean(-1).max():
                 best_lddt = lddt
                 best_xyz = xyz
@@ -183,6 +183,6 @@ class Refine_module(nn.Module):
         best_xyz = best_xyz.reshape(B, -1, L, 3, 3)
         pick = best_lddt.mean(-1).argmax(1)
         batch_idxs = torch.arange(B).long()
-        print(f"best_lddt is {best_lddt.shape} best_lddt.mean(-1) {best_lddt.mean(-1).shape} pick {pick}")
+        # print(f"best_lddt is {best_lddt.shape} best_lddt.mean(-1) {best_lddt.mean(-1).shape} pick {pick}")
         # return best_xyz[pick][None], best_lddt[pick][None]
         return best_xyz[batch_idxs, pick], best_lddt[batch_idxs, pick]
