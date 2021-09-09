@@ -36,8 +36,8 @@ MODEL_PARAM ={
         "n_resblock"   : 1,
         "p_drop"       : 0.0,
         "use_templ"    : True,
-        # "performer_N_opts": {"nb_features": 16},
-        # "performer_L_opts": {"nb_features": 16}
+        "performer_N_opts": {"nb_features": 16},
+        "performer_L_opts": {"nb_features": 16}
         }
 
 SE3_param = {
