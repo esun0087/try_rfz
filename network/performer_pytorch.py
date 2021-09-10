@@ -128,7 +128,7 @@ def generalized_kernel(data, *, projection_matrix, kernel_fn = nn.ReLU(), kernel
 
 def orthogonal_matrix_chunk(cols, device = None):
     unstructured_block = torch.randn((cols, cols), device = device)
-    q, r = torch.qr(unstructured_block.cpu(), some = True)
+    q, r = torch.linalg.qr(unstructured_block.cpu(), 'reduced' )
     q, r = map(lambda t: t.to(device), (q, r))
     return q.t()
 
