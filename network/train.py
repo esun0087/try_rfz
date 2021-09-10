@@ -164,6 +164,7 @@ class Train():
                 (predicted_points[:, :, None] -
                 predicted_points[:, None, :])**2, axis=-1))
         mask = (~torch.isnan(dmat_true)).float()
+        
         dmat_true = mask * dmat_true
         dmat_predicted = mask * dmat_predicted
         mse_loss = torch.nn.MSELoss()
@@ -193,7 +194,7 @@ class Train():
         train_data = data_reader.DataRead(data_path)
         # dataloader = torch.utils.data.DataLoader(train_data, batch_size=2, shuffle=True, collate_fn=data_reader.collate_batch_data)
         dataloader = torch.utils.data.DataLoader(train_data, batch_size=1, shuffle=True)
-        optimizer = optim.Adam(self.model.parameters(), lr=0.01)
+        optimizer = optim.Adam(self.model.parameters(), lr=0.001)
         scheduler = lr_scheduler.MultiStepLR(optimizer, [200, 500, 800], 0.1)
         epoch = 0
         while 1:
@@ -211,13 +212,13 @@ class Train():
                 batch_size = xyz_label.shape[0]
                 # print("xyz label shape", xyz_label.shape, "xyz shape", xyz.shape)
 
-                dis_loss = self.cross_loss_mask(dis_prob.float(), dis_label, dis_mask)
-                oemga_loss = self.cross_loss_mask(omega_prob.float(), omega_label, dis_mask)
-                theta_loss = self.cross_loss_mask(theta_prob.float(), theta_label, dis_mask)
-                phi_loss = self.cross_loss_mask(phi_prob.float(), phi_label, dis_mask)
+                # dis_loss = self.cross_loss_mask(dis_prob.float(), dis_label, dis_mask)
+                # oemga_loss = self.cross_loss_mask(omega_prob.float(), omega_label, dis_mask)
+                # theta_loss = self.cross_loss_mask(theta_prob.float(), theta_label, dis_mask)
+                # phi_loss = self.cross_loss_mask(phi_prob.float(), phi_label, dis_mask)
                 xyz = xyz.view(batch_size, -1, 3)
                 xyz_loss = self.coords_loss_rotate(xyz.float(), xyz_label.float())
-                dis_loss_2 = self.dis_mse_loss(xyz.float(), xyz_label.float())
+                # dis_loss_2 = self.dis_mse_loss2(xyz.float(), xyz_label.float())
                 xyz_loss = xyz_loss
                 lddt_result = lddt_torch.lddt(xyz.float(), xyz_label.float())
 
@@ -227,7 +228,7 @@ class Train():
                     # theta_loss, \
                     # phi_loss, \
                     xyz_loss, \
-                    dis_loss_2
+                    # dis_loss_2
                     ]
                 print("all loss ", ["%.3f" % i.data for i in loss], end = " ")
                 sum_loss = sum(loss)
