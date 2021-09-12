@@ -113,9 +113,9 @@ def xyz_to_c6d(xyz, params=PARAMS):
     c6d[...,0] = dist + 999.9*torch.eye(nres,device=xyz.device)[None,...]
     b,i,j = torch.where(c6d[...,0]<params['DMAX'])
 
-    c6d[b,i,j,torch.full_like(b,1)] = get_dih(Ca[b,i], Cb[b,i], Cb[b,j], Ca[b,j])
-    c6d[b,i,j,torch.full_like(b,2)] = get_dih(N[b,i], Ca[b,i], Cb[b,i], Cb[b,j])
-    c6d[b,i,j,torch.full_like(b,3)] = get_ang(Ca[b,i], Cb[b,i], Cb[b,j])
+    c6d[b,i,j,torch.full_like(b,1)] = get_dih(Ca[b,i], Cb[b,i], Cb[b,j], Ca[b,j]) # 以两个beta c作为线， cai, cbi, cbj作为面,cbi, cbj, caj作为面
+    c6d[b,i,j,torch.full_like(b,2)] = get_dih(N[b,i], Ca[b,i], Cb[b,i], Cb[b,j]) # 以cai, cbi作为线， n, cai, cbi作为面,cai, cbi,cbj作为面
+    c6d[b,i,j,torch.full_like(b,3)] = get_ang(Ca[b,i], Cb[b,i], Cb[b,j]) 
 
     # fix long-range distances
     c6d[...,0][c6d[...,0]>=params['DMAX']] = 999.9

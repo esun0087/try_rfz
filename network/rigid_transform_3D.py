@@ -10,11 +10,9 @@ import torch
 def rigid_transform_3D2(A, B):
     A = A.detach()
     B = B.detach()
-    A = A.permute(0, 2, 1)
-    B = B.permute(0, 2, 1)
-    A = A.numpy()
-    B = B.numpy()
-    R,t = rigid_transform_3D(A[0], B[0])
+    A = A.permute(1, 0).numpy()
+    B = B.permute(1, 0).numpy()
+    R,t = rigid_transform_3D(A, B)
     R = torch.from_numpy(R).permute(1,0)
     t = torch.from_numpy(t).permute(1,0)
     return R, t
