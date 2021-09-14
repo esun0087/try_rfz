@@ -141,10 +141,10 @@ def collate_batch_data(batch_dic):
         msa_new = np.full((max_msa_len, max_seq_length), 20)
         msa_new[:msa.shape[0], :msa.shape[1]] = msa
 
-        xyz_new = np.full((10, max_seq_length, 3, 3), np.nan)
+        xyz_new = np.full((10, max_seq_length, 3, 3), 0.0)
         xyz_new[:,:xyz_t.shape[1]] = xyz_t
 
-        t1d_new = np.full((10, max_seq_length, 3), np.nan)
+        t1d_new = np.full((10, max_seq_length, 3), 0.0)
         t1d_new[:,:t1d.shape[1]] = t1d
 
         t0d = t0d.numpy()
@@ -165,18 +165,18 @@ def collate_batch_data(batch_dic):
         xyz_new_label = np.full((max_seq_length * 3, 3), np.nan)
         xyz_new_label[:cur_seq_len * 3] = xyz_label
 
-        dis_new_label = np.full((max_seq_length, max_seq_length), 0)
+        dis_new_label = np.full((max_seq_length, max_seq_length), np.nan)
         dis_new_label[:cur_seq_len, :cur_seq_len] = dis_label 
 
-        omega_new_label = np.full((max_seq_length, max_seq_length), 0)
+        omega_new_label = np.full((max_seq_length, max_seq_length), np.nan)
         omega_new_label[:cur_seq_len, :cur_seq_len] = omege_label 
 
-        theta_new_label = np.full((max_seq_length, max_seq_length), 0)
+        theta_new_label = np.full((max_seq_length, max_seq_length), np.nan)
         theta_new_label[:cur_seq_len, :cur_seq_len] = theta_label
 
-        phi_new_label = np.full((max_seq_length, max_seq_length), 0)
+        phi_new_label = np.full((max_seq_length, max_seq_length), np.nan)
         phi_new_label[:cur_seq_len, :cur_seq_len] = phi_label
-        return [xyz_new_label, dis_new_label, omega_new_label, theta_new_label, phi_new_label]
+        return [xyz_new_label, dis_new_label, omega_new_label, theta_new_label, phi_new_label], cur_seq_len
 
     def masks_extend(masks):
         mask_new = np.full((max_seq_length, max_seq_length), 0.0)
@@ -219,11 +219,13 @@ def collate_batch_data(batch_dic):
     feat_batch=[]
     label_batch=[]
     masks_batch=[]
+    lens_info = []
     for i in range(len(batch_dic)): 
         feat, label, masks = batch_dic[i]
         # msa, xyz_t, t1d, t0d = feat
         feat = feat_extend(feat)
-        label = label_extend(label)
+        label, cur_len = label_extend(label)
+        lens_info.append(cur_len)
 
         feat_batch.append(feat)
         label_batch.append(label)
@@ -231,8 +233,9 @@ def collate_batch_data(batch_dic):
         masks_batch.append(masks)
     feat_batch = split_feats(feat_batch)
     label_batch = split_labels(label_batch)
-    masks_batch = torch.tensor(masks_batch)
-    return feat_batch, label_batch, masks_batch
+    masks_batch = torch.tensor(masks_batch).long()
+    lens_info = torch.tensor(lens_info).long()
+    return feat_batch, label_batch, masks_batch, lens_info
 def read_data_forsave(data_path):
     FFDB="pdb100_2021Mar03/pdb100_2021Mar03/pdb100_2021Mar03"
     FFindexDB = namedtuple("FFindexDB", "index, data")

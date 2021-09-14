@@ -93,7 +93,7 @@ class Templ_emb(nn.Module):
         self.norm = LayerNorm(d_templ)
         self.to_attn = nn.Linear(d_templ, 1)
 
-    def forward(self, t1d, t2d, idx):
+    def forward(self, t1d, t2d, idx, lens_info):
         # Input
         #   - t1d: 1D template info (B, T, L, 2)
         #   - t2d: 2D template info (B, T, L, L, 10)
@@ -111,8 +111,12 @@ class Templ_emb(nn.Module):
         #
         # attention along L
         feat = torch.empty_like(tmp)
+        lens_expand = lens_info.unsqueeze(-1).expand(B, T).flatten()
         for i_f in range(tmp.shape[0]):
-            feat[i_f] = self.encoder_L(tmp[i_f].view(1,L,L,-1))
+            cur_l = lens_expand[i_f]
+            sel_feat = tmp[i_f][:cur_l, :cur_l]
+            feat[i_f][:cur_l, :cur_l] = self.encoder_L(sel_feat.view(1,cur_l,cur_l,-1))
+            # feat[i_f] = self.encoder_L(tmp[i_f].view(1,L,L,-1))
         del tmp
         feat = feat.reshape(B, T, L, L, -1)
         feat = feat.permute(0,2,3,1,4).contiguous().reshape(B, L*L, T, -1)
@@ -132,7 +136,14 @@ class Pair_emb_w_templ(nn.Module):
         self.projection = nn.Linear(d_model + d_templ + 1, d_model)
         self.pos = PositionalEncoding2D(d_model, p_drop=p_drop)
 
-    def forward(self, seq, idx, templ):
+    def get_pair_mask(self, feat, lens_info):
+        B = feat.shape[0]
+        mask_like = torch.ones_like(feat)
+        for idx in range(B):
+            mask_like[idx][:lens_info[idx], :lens_info[idx]] = 0
+        mask_like = mask_like.bool()
+        return mask_like
+    def forward(self, seq, idx, templ, lens_info):
         # input:
         #   seq: target sequence (B, L, 20)
         B = seq.shape[0]
@@ -149,7 +160,10 @@ class Pair_emb_w_templ(nn.Module):
         pair = torch.cat((left, right, seqsep, templ), dim=-1)
         pair = self.projection(pair) # (B, L, L, d_model)
         
-        return self.pos(pair, idx)
+        feat = self.pos(pair, idx)
+        pair_mask = self.get_pair_mask(feat, lens_info)
+        feat.masked_fill_(pair_mask, 0)
+        return feat
 
 class Pair_emb_wo_templ(nn.Module):
     #TODO: embedding without template info

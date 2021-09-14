@@ -96,34 +96,39 @@ class RoseTTAFoldModule_e2e(nn.Module):
                                     d_node_hidden=d_hidden, d_pair_hidden=d_hidden,
                                     SE3_param=REF_param, p_drop=p_drop)
 
-    def forward(self, msa, seq, idx, t1d=None, t2d=None, prob_s=None, return_raw=False, refine_only=False):
-        seq1hot = torch.nn.functional.one_hot(seq, num_classes=21).float()
-        if not refine_only:
-            B, N, L = msa.shape
-            # Get embeddings
-            msa = self.msa_emb(msa, idx) # idx 主要是为了添加位置信息, t1d是为了添加ij的匹配信息 
-            if self.use_templ:
-                tmpl = self.templ_emb(t1d, t2d, idx)
-                pair = self.pair_emb(seq, idx, tmpl) # 感觉是把序列embeding信息，idx一维位置信息，强行扩展，添加到了二维信息里.分为横向和纵向扩展
-            else:
-                pair = self.pair_emb(seq, idx)
-            #
-            # Extract features
-            msa, pair, xyz, lddt = self.feat_extractor(msa, pair, seq1hot, idx)
+    def get_msa_mask(self, feat, lens_info):
+        B = feat.shape[0]
+        mask_like = torch.ones_like(feat)
+        for idx in range(B):
+            mask_like[idx][:,:lens_info[idx]] = 0
+        mask_like = mask_like.bool()
+        return mask_like
 
-            # Predict 6D coords
-            logits = self.c6d_predictor(pair)
-            prob_s = list()
-            for l in logits:
-                prob_s.append(nn.Softmax(dim=1)(l)) # (B, C, L, L)
-            prob_s = torch.cat(prob_s, dim=1).permute(0,2,3,1)
+    def forward(self, msa, seq, idx, t1d=None, t2d=None, prob_s=None, lens_info = None):
+        seq1hot = torch.nn.functional.one_hot(seq, num_classes=21).float()
+        B, N, L = msa.shape
+        # Get embeddings
+        msa = self.msa_emb(msa, idx) # idx 主要是为了添加位置信息, t1d是为了添加ij的匹配信息 
+        msa_mask = self.get_msa_mask(msa, lens_info)
+        msa.masked_fill_(msa_mask, 0)
+
+        if self.use_templ:
+            tmpl = self.templ_emb(t1d, t2d, idx, lens_info)
+            pair = self.pair_emb(seq, idx, tmpl, lens_info) # 感觉是把序列embeding信息，idx一维位置信息，强行扩展，添加到了二维信息里.分为横向和纵向扩展
+        else:
+            pair = self.pair_emb(seq, idx)
+        #
+        # Extract features
+        msa, pair, xyz, lddt = self.feat_extractor(msa, pair, seq1hot, idx)
+
+        # Predict 6D coords
+        logits = self.c6d_predictor(pair)
+        prob_s = list()
+        for l in logits:
+            prob_s.append(nn.Softmax(dim=1)(l)) # (B, C, L, L)
+        prob_s = torch.cat(prob_s, dim=1).permute(0,2,3,1)
         
         B, L = msa.shape[:2]
-        if return_raw:
-            return logits, msa, xyz, lddt.view(B, L)
         ref_xyz, ref_lddt = self.refine(msa, prob_s, seq1hot, idx)
 
-        if refine_only:
-            return ref_xyz, ref_lddt.view(B,L)
-        else:
-            return logits, msa, ref_xyz, ref_lddt.view(B,L)
+        return logits, msa, ref_xyz, ref_lddt.view(B,L)

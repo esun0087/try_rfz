@@ -464,7 +464,6 @@ class IterativeFeatureExtractor(nn.Module):
         #   pair: initial residue pair embeddings (L, L, d_pair)
         # msa信息， pair信息， onehot信息， idx位置信息
         
-        pair_s = list()
         pair = self.initial(pair)
         if self.n_module > 0:
             for i_m in range(self.n_module):

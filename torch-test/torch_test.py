@@ -238,5 +238,50 @@ import torch
 # import numpy as np
 # print(np.nan < 14)
 
-a = torch.arange(12).reshape(-1, 3).float()
-print(torch.mean(a, -1))
+# a = torch.arange(12).reshape(-1, 3).float()
+# print(torch.mean(a, -1))
+
+# emb = nn.Embedding(10, 23)
+# a = torch.randint(0, 11, (5,))
+# print(a)
+# print(emb(a))
+# a=torch.randn(3,3)
+# mask  = torch.ones(3, 3).bool()
+# mask[2,2] = False
+# a.masked_fill_(mask, -100)
+# print(a)
+# L = 138
+# feat = torch.randn(2, 101, 138, 8)
+# msa_mask = torch.arange(L).expand(2, 101, 138)
+# a = torch.tensor([132, 138]).long()
+# mask_like = torch.zeros_like(msa_mask)
+# for idx in range(msa_mask.shape[0]):
+#     sel = torch.where(msa_mask[idx] < a[idx])
+#     sel_neg = torch.where(msa_mask[idx] >= a[idx])
+#     mask_like[idx][sel_neg] = 1
+# mask_like = mask_like.bool()
+# mask_like = mask_like.unsqueeze(-1).expand(feat.shape)
+# feat.masked_fill_(mask_like, -1e9)
+# print(feat[0][100][131])
+# a = torch.tensor([132, 138]).long()
+# print(a.unsqueeze(-1).expand(2, 10).flatten())
+
+
+# L = 138
+# B = 2
+# feat = torch.randn(B, L, L, 8)
+# a = torch.tensor([132, 138]).long()
+# mask = torch.ones_like(feat)
+# for idx in range(B):
+#     mask[idx][:a[idx], :a[idx]] = 0
+# mask = mask.bool()
+# feat.masked_fill_(mask, 0)
+# print(feat[0][132])
+
+a = torch.randn(3, 2,requires_grad=True)
+b = torch.randn(3, 2)
+mse = torch.nn.MSELoss()
+for i in range(10):
+    d = mse(a, b)
+    d.backward()
+    print(a.grad)

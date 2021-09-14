@@ -7,7 +7,7 @@ MODEL_PARAM ={
         "n_module_str" : 1, # IterativeFeatureExtractor使用， 用于se3更新坐标和msa以及pair的信息,这是第一次更新。
         "n_module_ref" : 1, # Refine_module 使用， 也是为了se3更新坐标和msa以及pair的信息， 这个要迭代200次， 但是为了测试， 只迭代1次,这个过程中topk为64
         "n_layer"      : 1, # IterativeFeatureExtractor使用，
-        "d_msa"        : 8 ,
+        "d_msa"        : 8,
         "d_pair"       : 8,
         "d_templ"      : 8,
         "n_head_msa"   : 2,
