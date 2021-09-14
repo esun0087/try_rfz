@@ -15,9 +15,10 @@ import data_reader
 import lddt_torch
 import rigid_transform_3D
 from torch.nn.utils import clip_grad_norm_
+from multi_backward import MultiBackward
 script_dir = '/'.join(os.path.dirname(os.path.realpath(__file__)).split('/')[:-1])
 from train_config import *
-
+torch.autograd.set_detect_anomaly(True)
 cur_R, cur_t = None, None
 
 class Train():
@@ -80,15 +81,8 @@ class Train():
 
             true_coords = true_ca[select_atoms].view(-1, 3)
             pred_coords = pred_ca[select_atoms].view(-1, 3)
-
-            # print(select_coords)
-
-            # select_atoms = torch.randint(0, select_coords.shape[0], (3,))
-            # true_ca = select_coords[select_atoms,:]
-            # pred_ca = pred_coords[select_atoms,:]
-            true_ca = true_coords
-            pred_ca = pred_coords
-            R, t = rigid_transform_3D.rigid_transform_3D2(pred_ca, true_ca)
+            
+            R, t = rigid_transform_3D.rigid_transform_3D2(pred_coords, true_coords)
             cur_R = R
             cur_t = t
             return R, t
@@ -166,14 +160,15 @@ class Train():
         optimizer = optim.Adam(self.model.parameters(), lr=0.001)
         scheduler = lr_scheduler.MultiStepLR(optimizer, [500, 800], 0.1)
         epoch = 0
+        
         while 1:
             avg_loss, data_cnt = 0, 0
-            for i, data in enumerate(dataloader):
+            multi_back = MultiBackward(optimizer, 1)
+            for batch_idx, data in enumerate(dataloader):
                 feat, label, masks = data
                 feat = [i.to(self.device) for i in feat]
                 label = [i.to(self.device) for i in label]
                 dis_mask = masks.to(self.device)
-                optimizer.zero_grad()
                 msa, xyz_t, t1d, t0d = feat
                 xyz_label, dis_label, omega_label, theta_label, phi_label  = label
                 xyz, lddt, prob_s = self.get_model_result(msa, xyz_t, t1d, t0d)
@@ -201,16 +196,12 @@ class Train():
                     ]
                 print("all loss ", ["%.3f" % i.data for i in loss], end = " ")
                 sum_loss = sum(loss)
+                multi_back.add_loss(sum_loss)
                 avg_loss += sum_loss.cpu().detach().numpy()
-                if 1:
-                    for i, lo in enumerate(loss):
-                        if i == len(loss) - 1:
-                            lo.backward()
-                        else:
-                            lo.backward(retain_graph=True)
-                clip_grad_norm_(self.model.parameters(), max_norm=3, norm_type=2)
-                optimizer.step()
+                # clip_grad_norm_(self.model.parameters(), max_norm=3, norm_type=2)
                 data_cnt += 1
+            del (multi_back)
+            
             scheduler.step()
             avg_loss = avg_loss / data_cnt
             print(f"=================train epoch {epoch} avg_loss {avg_loss} lddt {lddt_result}")
