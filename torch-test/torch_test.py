@@ -238,5 +238,11 @@ import torch
 # import numpy as np
 # print(np.nan < 14)
 
+# a = torch.arange(12).reshape(-1, 3).float()
+# print(torch.mean(a, -1))
+
 a = torch.arange(12).reshape(-1, 3).float()
-print(torch.mean(a, -1))
+mask = a < 5
+print(mask)
+b = a.masked_fill(mask, -1)
+print(b)
