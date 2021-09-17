@@ -77,7 +77,7 @@ class Refine_Network(nn.Module):
         
         self.se3 = SE3Transformer(**SE3_param)
 
-    @torch.cuda.amp.autocast(enabled=False)
+    @torch.cuda.amp.autocast(enabled=True)
     def forward(self, msa, pair, xyz, state, seq1hot, idx, top_k=64):
         # process node & pair features
         B, L = msa.shape[:2]
@@ -144,45 +144,21 @@ class Refine_module(nn.Module):
         idx = torch.cat([idx, idx])
         seq1hot = torch.cat([seq1hot, seq1hot])
 
-        best_xyz = xyz
-        best_lddt = torch.zeros((xyz.shape[0], xyz.shape[1], 1), device=xyz.device)
         # print(f"init refine_net xyz {xyz.shape} state {state.shape} node {node.shape} edge {edge.shape} idx {idx.shape} seq1hot {seq1hot.shape} best_lddt {best_lddt.shape}")
-        prev_lddt = 0.0
-        no_impr = 0
-        no_impr_best = 0
         # for test train
-        for i_iter in range(1):
-            for i_m in range(self.n_module):
-                if use_transf_checkpoint:
-                    xyz, state = checkpoint.checkpoint(create_custom_forward(self.refine_net[i_m], top_k=64), node.float(), edge.float(), xyz.detach().float(), state.float(), seq1hot, idx)
-                else:
-                    # print(f"in refine_net xyz {xyz.shape} state {state.shape} seq1hot {seq1hot.shape} idx {idx.shape} node {node.shape}")
-                    xyz, state = self.refine_net[i_m](node.float(), edge.float(), xyz.detach().float(), state.float(), seq1hot, idx, top_k=64)
-                    # print(f"out refine_net xyz {xyz.shape} state {state.shape}")
-            #
-            lddt = self.pred_lddt(self.norm_state(state)) 
-            # print(f"before lddt {lddt.shape}")
-            lddt = torch.clamp(lddt, 0.0, 1.0)[...,0]
-            # print(f"after lddt {lddt.shape}")
-            if lddt.mean(-1).max() <= prev_lddt+eps:
-                no_impr += 1
+        for i_m in range(self.n_module):
+            if use_transf_checkpoint:
+                xyz, state = checkpoint.checkpoint(create_custom_forward(self.refine_net[i_m], top_k=64), node.float(), edge.float(), xyz.detach().float(), state.float(), seq1hot, idx)
             else:
-                no_impr = 0
-            if lddt.mean(-1).max() <= best_lddt.mean(-1).max()+eps:
-                no_impr_best += 1
-            else:
-                no_impr_best = 0
-            if no_impr > 10 or no_impr_best > 20:
-                break
-            # print(f"ldd shape {lddt.shape} lddt mean {lddt.mean(-1).shape}" )
-            if lddt.mean(-1).max() > best_lddt.mean(-1).max():
-                best_lddt = lddt
-                best_xyz = xyz
-            prev_lddt = lddt.mean(-1).max()
-        best_lddt = best_lddt.reshape(B,-1, L)
-        best_xyz = best_xyz.reshape(B, -1, L, 3, 3)
-        pick = best_lddt.mean(-1).argmax(1)
+                xyz, state = self.refine_net[i_m](node.float(), edge.float(), xyz.detach().float(), state.float(), seq1hot, idx, top_k=64)
+        #
+        lddt = self.pred_lddt(self.norm_state(state)) 
+        lddt = torch.clamp(lddt, 0.0, 1.0)[...,0]
+        # print(f"ldd shape {lddt.shape} lddt mean {lddt.mean(-1).shape}" )
+        lddt = lddt.reshape(B,-1, L)
+        xyz = xyz.reshape(B, -1, L, 3, 3)
+        pick = lddt.mean(-1).argmax(1)
         batch_idxs = torch.arange(B).long()
         # print(f"best_lddt is {best_lddt.shape} best_lddt.mean(-1) {best_lddt.mean(-1).shape} pick {pick}")
         # return best_xyz[pick][None], best_lddt[pick][None]
-        return best_xyz[batch_idxs, pick], best_lddt[batch_idxs, pick]
+        return xyz[batch_idxs, pick], lddt[batch_idxs, pick]

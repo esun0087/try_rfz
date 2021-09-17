@@ -42,7 +42,7 @@ class TFN(nn.Module):
         block0.append(GConvSE3(fibers['mid'], fibers['out'], self_interaction=self.use_self, edge_dim=self.edge_dim))
         return nn.ModuleList(block0)
 
-    @torch.cuda.amp.autocast(enabled=False)
+    @torch.cuda.amp.autocast(enabled=True)
     def forward(self, G, type_0_features, type_1_features):
         # Compute equivariant weight basis from relative positions
         basis, r = get_basis_and_r(G, self.num_degrees-1)
@@ -98,7 +98,7 @@ class SE3Transformer(nn.Module):
                     skip='cat', selfint=self.si_e, x_ij=self.x_ij))
         return nn.ModuleList(Gblock)
 
-    @torch.cuda.amp.autocast(enabled=False)
+    @torch.cuda.amp.autocast(enabled=True)
     def forward(self, G, type_0_features, type_1_features):
         # Compute equivariant weight basis from relative positions
         # type_0_features msa特征

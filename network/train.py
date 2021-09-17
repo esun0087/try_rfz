@@ -67,7 +67,7 @@ class Train():
                 dis_loss_whole = self.loss.dis_mse_whole_atom(xyz.float(), xyz_label.float())
                 dis_loss_ca = self.loss.dis_mse_loss_ca(xyz.float(), xyz_label.float())
                 lddt_result = lddt_torch.lddt(xyz.float(), xyz_label.float())
-                weight = (epoch + 1) / epoch_max
+                weight = (epoch + 1) / epoch_max * 0.2 + 0.05
                 loss = [\
                     dis_loss, \
                     oemga_loss, \
@@ -77,7 +77,7 @@ class Train():
                     weight * dis_loss_whole, \
                     # dis_loss_ca
                     ]
-                print("all loss ", ["%.2f" % i.data for i in loss], "weight", weight)
+                # print("all loss ", ["%.2f" % i.data for i in loss], "weight", weight)
                 sum_loss = sum(loss)
                 multi_back.add_loss(sum_loss)
                 avg_loss += sum_loss.cpu().detach().numpy()

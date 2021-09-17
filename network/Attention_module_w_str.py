@@ -217,7 +217,7 @@ class Str2Str(nn.Module):
         
         self.se3 = SE3Transformer(**SE3_param)
     
-    @torch.cuda.amp.autocast(enabled=False)
+    @torch.cuda.amp.autocast(enabled=True)
     def forward(self, msa, pair, xyz, seq1hot, idx, top_k=64):
         # process msa & pair features
         B, N, L = msa.shape[:3]
