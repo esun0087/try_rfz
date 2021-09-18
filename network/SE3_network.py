@@ -98,7 +98,7 @@ class SE3Transformer(nn.Module):
                     skip='cat', selfint=self.si_e, x_ij=self.x_ij))
         return nn.ModuleList(Gblock)
 
-    @torch.cuda.amp.autocast(enabled=True)
+    @torch.cuda.amp.autocast(enabled=False)
     def forward(self, G, type_0_features, type_1_features):
         # Compute equivariant weight basis from relative positions
         # type_0_features msa特征

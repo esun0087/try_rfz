@@ -127,16 +127,17 @@ class Refine_module(nn.Module):
                                          d_state=SE3_param['l0_out_features'],
                                          SE3_param=SE3_param, p_drop=p_drop), self.n_module)
         self.norm_state = LayerNorm(SE3_param['l0_out_features'])
-        self.pred_lddt = nn.Linear(SE3_param['l0_out_features'], 1)
+        
+        self.pred_lddt = nn.Sequential(nn.Linear(SE3_param['l0_out_features'], 1), nn.Sigmoid())
 
-    def forward(self, node, edge, seq1hot, idx, use_transf_checkpoint=False, eps=1e-4):
+    def forward_bak(self, node, edge, seq1hot, idx, use_transf_checkpoint=False, eps=1e-4):
         edge = self.proj_edge(edge)
 
         xyz, state = self.regen_net(seq1hot, idx, node, edge)
         # print(f"region net xyz {xyz.shape} state {state.shape} input seq1hot {seq1hot.shape} idx {idx.shape} edge {edge.shape}", )
         B, L = xyz.shape[:2]
        
-        # DOUBLE IT w/ Mirror images
+        # DOUBLE IT w/ Mirror images 
         xyz = torch.cat([xyz, xyz*torch.tensor([1,1,-1], dtype=xyz.dtype, device=xyz.device)])
         state = torch.cat([state, state])
         node = torch.cat([node, node])
@@ -159,6 +160,18 @@ class Refine_module(nn.Module):
         xyz = xyz.reshape(B, -1, L, 3, 3)
         pick = lddt.mean(-1).argmax(1)
         batch_idxs = torch.arange(B).long()
-        # print(f"best_lddt is {best_lddt.shape} best_lddt.mean(-1) {best_lddt.mean(-1).shape} pick {pick}")
-        # return best_xyz[pick][None], best_lddt[pick][None]
         return xyz[batch_idxs, pick], lddt[batch_idxs, pick]
+
+    def forward(self, node, edge, seq1hot, idx, use_transf_checkpoint=False, eps=1e-4):
+        edge = self.proj_edge(edge)
+
+        xyz, state = self.regen_net(seq1hot, idx, node, edge)
+        # print(f"region net xyz {xyz.shape} state {state.shape} input seq1hot {seq1hot.shape} idx {idx.shape} edge {edge.shape}", )
+       
+        # for test train
+        for i_m in range(self.n_module):
+            if use_transf_checkpoint:
+                xyz, state = checkpoint.checkpoint(create_custom_forward(self.refine_net[i_m], top_k=64), node.float(), edge.float(), xyz.float(), state.float(), seq1hot, idx)
+        #
+        lddt = self.pred_lddt(self.norm_state(state)) 
+        return xyz, lddt

@@ -1,4 +1,5 @@
 import torch
+import lddt_torch
 import rigid_transform_3D
 class Loss:
     def __init__(self, device) -> None:
@@ -49,8 +50,9 @@ class Loss:
                 (predicted_points[:, :, None] -
                 predicted_points[:, None, :])**2, axis=-1))
         mask = (~torch.isnan(dmat_true)).float() * (1 - torch.eye(true_points.shape[1]))
+        mask = mask * (dmat_true < 20).float()
         
-        dmat_true.masked_fill_(~mask.bool(), 0)
+        dmat_true = dmat_true.masked_fill(~mask.bool(), 0)
         dmat_predicted = mask * dmat_predicted
         dmat_true = mask * dmat_true
         mse_loss = torch.nn.MSELoss()
@@ -74,13 +76,27 @@ class Loss:
                 predicted_points[:, None, :])**2, axis=-1))
 
         tmp = torch.abs(dmat_true - dmat_predicted)
-        mask = (dmat_true < 4).float() * (1 - torch.eye(true_points.shape[1]))
+        mask = (dmat_true < 15).float() * (1 - torch.eye(true_points.shape[1]))
         #score = 0.25 * ((tmp < 0.5).float() + (tmp < 1.0).float() + (tmp < 2.0).float() + (tmp < 4.0).float())
 
-        dmat_true.masked_fill_(~mask.bool(), 0)
+        dmat_true = dmat_true.masked_fill(~mask.bool(), 0)
         mse_loss = torch.nn.MSELoss(reduction='none')
         loss = mse_loss(dmat_predicted, dmat_true)
         loss = mask * loss
         #loss = score * loss
         loss = torch.sqrt(torch.mean(loss))
         return loss
+    def lddt_loss(self, pred_, true_, model_lddt):
+        batch_size = pred_.shape[0]
+        xyz_ca = pred_.view(batch_size, -1, 3, 3)[:,:,1]
+        xyz_label_ca = true_.view(batch_size, -1, 3, 3)[:,:,1]
+        mask = torch.isnan(xyz_label_ca)
+
+        xyz_label_ca = xyz_label_ca.masked_fill(mask, 0)
+        xyz_ca = xyz_ca.masked_fill(mask, 0)
+
+        lddt_result = lddt_torch.lddt(xyz_ca.float(), xyz_label_ca.float(), 15, True)
+        mse_loss = torch.nn.MSELoss()
+        loss = mse_loss(model_lddt, lddt_result)
+        return loss
+        

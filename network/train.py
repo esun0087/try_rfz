@@ -46,6 +46,7 @@ class Train():
         for epoch in range(epoch_max):
             avg_loss, data_cnt = 0, 0
             multi_back = MultiBackward(optimizer, 1)
+            weight = (epoch + 1) / epoch_max * 0.2 + 0.05
             for batch_idx, data in enumerate(dataloader):
                 feat, label, masks = data
                 feat = [i.to(self.device) for i in feat]
@@ -53,21 +54,24 @@ class Train():
                 dis_mask = masks.to(self.device)
                 msa, xyz_t, t1d, t0d = feat
                 xyz_label, dis_label, omega_label, theta_label, phi_label  = label
-                xyz, lddt, prob_s = self.get_model_result(msa, xyz_t, t1d, t0d)
+                xyz, model_lddt, prob_s = self.get_model_result(msa, xyz_t, t1d, t0d)
                 dis_prob, omega_prob, theta_prob, phi_prob = prob_s
                 batch_size = xyz_label.shape[0]
-                # print("xyz label shape", xyz_label.shape, "xyz shape", xyz.shape)
 
                 dis_loss = self.loss.cross_loss_mask(dis_prob.float(), dis_label, dis_mask)
                 oemga_loss = self.loss.cross_loss_mask(omega_prob.float(), omega_label, dis_mask)
                 theta_loss = self.loss.cross_loss_mask(theta_prob.float(), theta_label, dis_mask)
                 phi_loss = self.loss.cross_loss_mask(phi_prob.float(), phi_label, dis_mask)
+
                 xyz = xyz.view(batch_size, -1, 3)
                 xyz_loss = self.loss.coords_loss_rotate(xyz.float(), xyz_label.float())
                 dis_loss_whole = self.loss.dis_mse_whole_atom(xyz.float(), xyz_label.float())
-                dis_loss_ca = self.loss.dis_mse_loss_ca(xyz.float(), xyz_label.float())
-                lddt_result = lddt_torch.lddt(xyz.float(), xyz_label.float())
-                weight = (epoch + 1) / epoch_max * 0.2 + 0.05
+
+                xyz_ca = xyz.view(batch_size, -1, 3, 3)[:,:,1]
+                xyz_label_ca = xyz_label.view(batch_size, -1, 3, 3)[:,:,1]
+                lddt_result = lddt_torch.lddt(xyz_ca.float(), xyz_label_ca.float())
+
+                lddt_loss = self.loss.lddt_loss(xyz.float(), xyz_label.float(), model_lddt)
                 loss = [\
                     dis_loss, \
                     oemga_loss, \
@@ -75,9 +79,10 @@ class Train():
                     phi_loss, \
                     weight * xyz_loss, \
                     weight * dis_loss_whole, \
-                    # dis_loss_ca
+                    # dis_loss_ca, \
+                    lddt_loss
                     ]
-                # print("all loss ", ["%.2f" % i.data for i in loss], "weight", weight)
+                print("all loss ", ["%.2f" % i.data for i in loss], "weight", weight)
                 sum_loss = sum(loss)
                 multi_back.add_loss(sum_loss)
                 avg_loss += sum_loss.cpu().detach().numpy()
@@ -87,7 +92,7 @@ class Train():
             
             scheduler.step()
             avg_loss = avg_loss / data_cnt
-            print(f"=====train epoch {epoch} avg_loss {avg_loss} lddt {lddt_result}")
+            print(f"=====train epoch {epoch} avg_loss {avg_loss} lddt {lddt_result} model lddt {torch.mean(model_lddt)}")
 
     def for_single(self, msa, t0d, t1d, t2d):
         B, N, L = msa.shape
