@@ -463,6 +463,8 @@ class IterativeFeatureExtractor(nn.Module):
         #   msa: initial MSA embeddings (N, L, d_msa)
         #   pair: initial residue pair embeddings (L, L, d_pair)
         # msa信息， pair信息， onehot信息， idx位置信息
+        print(msa[0][133])
+        
         
         pair = self.initial(pair)
         if self.n_module > 0:

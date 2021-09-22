@@ -116,7 +116,7 @@ class Train():
         return loss
     def train_with_mask(self, data_path):
         train_data = data_reader.DataRead(data_path)
-        dataloader = torch.utils.data.DataLoader(train_data, batch_size=2, shuffle=True, collate_fn=data_reader.collate_batch_data)
+        dataloader = torch.utils.data.DataLoader(train_data, batch_size=2, shuffle=False, collate_fn=data_reader.collate_batch_data)
         # dataloader = torch.utils.data.DataLoader(train_data, batch_size=1, shuffle=True)
         optimizer = optim.Adam(self.model.parameters(), lr=0.001)
         scheduler = lr_scheduler.MultiStepLR(optimizer, [500, 800], 0.1)

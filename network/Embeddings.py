@@ -122,9 +122,10 @@ class Templ_emb(nn.Module):
         feat = feat.permute(0,2,3,1,4).contiguous().reshape(B, L*L, T, -1)
         
         attn = self.to_attn(self.norm(feat))
-        attn = F.softmax(attn, dim=-2) # (B, L*L, T, 1)
+        attn = F.softmax(attn, dim=-2) # (B, L*L, T, 1) # 应该是每个模板的当前位点有一个权重
         feat = torch.matmul(attn.transpose(-2, -1), feat)
-        return feat.reshape(B, L, L, -1)
+        feat = feat.reshape(B, L, L, -1)
+        return feat
 
 class Pair_emb_w_templ(nn.Module):
     def __init__(self, d_model=128, d_seq=21, d_templ=64, p_drop=0.1):
