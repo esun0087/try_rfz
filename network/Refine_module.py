@@ -162,7 +162,7 @@ class Refine_module(nn.Module):
         batch_idxs = torch.arange(B).long()
         return xyz[batch_idxs, pick], lddt[batch_idxs, pick]
 
-    def forward(self, node, edge, seq1hot, idx, use_transf_checkpoint=False, eps=1e-4):
+    def forward(self, node, edge, seq1hot, idx, use_transf_checkpoint=True, eps=1e-4):
         edge = self.proj_edge(edge)
 
         xyz, state = self.regen_net(seq1hot, idx, node, edge)

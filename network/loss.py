@@ -28,12 +28,12 @@ class Loss:
         losses = 0
         for pred_true, cur_true in zip(pred_, true_):
             mse_loss = torch.nn.MSELoss()
-            cur_mask = ~torch.isnan(true_)
+            cur_mask = ~torch.isnan(cur_true)
             R, t = get_r_t(pred_true, cur_true)
             pred_true = cur_mask * pred_true
             pred_true.masked_fill_(cur_mask, 0)
             cur_true = cur_true.masked_fill(cur_mask, 0)
-            pred_rotate = torch.matmul(pred_, R) + t
+            pred_rotate = torch.matmul(pred_true, R) + t
             c = mse_loss(pred_rotate, cur_true)
             c = torch.sqrt(c)
             losses = losses + c

@@ -94,7 +94,7 @@ class Train():
             avg_loss = avg_loss / data_cnt
             print(f"=====train epoch {epoch} avg_loss {avg_loss} lddt {lddt_result} model lddt {torch.mean(model_lddt)}")
 
-    def for_single(self, msa, t0d, t1d, t2d):
+    def for_single(self, msa, t1d, t2d):
         B, N, L = msa.shape
         idx_pdb = torch.arange(L).long().expand((B, L))
         msa = msa[:,:1000].to(self.device)
@@ -116,7 +116,7 @@ class Train():
         t0d = t0d.float()
         t2d = xyz_to_t2d(xyz_t, t0d)
        
-        xyz, lddt, prob_s = self.for_single(msa, t0d, t1d, t2d)
+        xyz, lddt, prob_s = self.for_single(msa, t1d, t2d)
         return xyz, lddt, prob_s
 
 if __name__ == "__main__":
