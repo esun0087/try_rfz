@@ -28,10 +28,9 @@ class Loss:
         losses = 0
         for pred_true, cur_true in zip(pred_, true_):
             mse_loss = torch.nn.MSELoss()
-            cur_mask = ~torch.isnan(cur_true)
+            cur_mask = torch.isnan(cur_true)
             R, t = get_r_t(pred_true, cur_true)
             pred_true = cur_mask * pred_true
-            pred_true.masked_fill_(cur_mask, 0)
             cur_true = cur_true.masked_fill(cur_mask, 0)
             pred_rotate = torch.matmul(pred_true, R) + t
             c = mse_loss(pred_rotate, cur_true)
@@ -92,11 +91,13 @@ class Loss:
         xyz_label_ca = true_.view(batch_size, -1, 3, 3)[:,:,1]
         mask = torch.isnan(xyz_label_ca)
 
-        xyz_label_ca = xyz_label_ca.masked_fill(mask, 0)
-        xyz_ca = xyz_ca.masked_fill(mask, 0)
+        # xyz_label_ca = xyz_label_ca.masked_fill(mask, 0)
+        # xyz_ca = xyz_ca.masked_fill(mask, 0)
 
         lddt_result = lddt_torch.lddt(xyz_ca.float(), xyz_label_ca.float(), 15, True)
-        mse_loss = torch.nn.MSELoss()
+        mse_loss = torch.nn.MSELoss(reduction='none')
         loss = mse_loss(model_lddt, lddt_result)
+        loss = (~mask[:,:,0]).float() * loss
+        loss = torch.mean(loss)
         return loss
         
