@@ -117,18 +117,33 @@ class RoseTTAFoldModule_e2e(nn.Module):
             pair = self.pair_emb(seq, idx, tmpl, lens_info) # 感觉是把序列embeding信息，idx一维位置信息，强行扩展，添加到了二维信息里.分为横向和纵向扩展
         else:
             pair = self.pair_emb(seq, idx)
+        ret_msa = torch.empty((B, L, msa.shape[-1]))
+        ret_pair = torch.empty_like(pair)
+        ret_xyz = torch.empty((B, L, 3, 3))
+        ret_lddt = torch.empty((B, L))
+
+        # msa, pair, xyz, lddt = self.feat_extractor(msa, pair, seq1hot, idx)
+        # print(msa.shape, pair.shape, xyz.shape, lddt.shape)
         #
         # Extract features
-        msa, pair, xyz, lddt = self.feat_extractor(msa, pair, seq1hot, idx)
+        for i in range(B):
+            cur_l = lens_info[i]
+            cur_msa = msa[i, :,:cur_l]
+            cur_pair = pair[i, :cur_l, :cur_l]
+            cur_seq1hot = seq1hot[i, :cur_l]
+            cur_idx = idx[i, :cur_l]
+            cur_msa, cur_pair, cur_seq1hot, cur_idx = cur_msa.unsqueeze(0), cur_pair.unsqueeze(0), cur_seq1hot.unsqueeze(0),cur_idx.unsqueeze(0)
+            # print(cur_msa.shape, cur_pair.shape, cur_seq1hot.shape, cur_idx.shape)
+            ret_msa[i, :cur_l], ret_pair[i, :cur_l, :cur_l], ret_xyz[i, :cur_l], ret_lddt[i, :cur_l] = self.feat_extractor(cur_msa, cur_pair, cur_seq1hot, cur_idx)
 
         # Predict 6D coords
-        logits = self.c6d_predictor(pair)
+        logits = self.c6d_predictor(ret_pair)
         prob_s = list()
         for l in logits:
             prob_s.append(nn.Softmax(dim=1)(l)) # (B, C, L, L)
         prob_s = torch.cat(prob_s, dim=1).permute(0,2,3,1)
         
-        B, L = msa.shape[:2]
-        ref_xyz, ref_lddt = self.refine(msa, prob_s, seq1hot, idx)
+        B, L = ret_msa.shape[:2]
+        ref_xyz, ref_lddt = self.refine(ret_msa, prob_s, seq1hot, idx)
 
-        return logits, msa, ref_xyz, ref_lddt.view(B,L)
+        return logits, ret_msa, ref_xyz, ref_lddt.view(B,L)

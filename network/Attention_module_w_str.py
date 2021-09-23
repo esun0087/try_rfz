@@ -460,11 +460,9 @@ class IterativeFeatureExtractor(nn.Module):
     
     def forward(self, msa, pair, seq1hot, idx):
         # input:
-        #   msa: initial MSA embeddings (N, L, d_msa)
-        #   pair: initial residue pair embeddings (L, L, d_pair)
+        #   msa: initial MSA embeddings (B, N, L, d_msa)
+        #   pair: initial residue pair embeddings (B, L, L, d_pair)
         # msa信息， pair信息， onehot信息， idx位置信息
-        print(msa[0][133])
-        
         
         pair = self.initial(pair)
         if self.n_module > 0:
@@ -486,7 +484,7 @@ class IterativeFeatureExtractor(nn.Module):
                 # 这个流程中lddt没用到
                 msa, pair, xyz = self.iter_block_2[i_m](msa, pair, xyz, seq1hot, idx, top_k=top_ks[i_m])
         # 再次使用se3优化坐标
-        # 感觉跟上边的iter_block_2没啥区别
+        # 感觉跟上边的iter_block_2没啥区别,主要是多了lddt
         msa, pair, xyz, lddt = self.final(msa, pair, xyz, seq1hot, idx)
-
+        # 只取了一个， 感觉也很奇怪
         return msa[:,0], pair, xyz, lddt
