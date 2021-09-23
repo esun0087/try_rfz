@@ -72,7 +72,6 @@ class Train():
                 xyz_ca = xyz.view(batch_size, -1, 3, 3)[:,:,1]
                 xyz_label_ca = xyz_label.view(batch_size, -1, 3, 3)[:,:,1]
                 lddt_result = lddt_torch.lddt(xyz_ca.float(), xyz_label_ca.float())
-
                 lddt_loss = self.loss.lddt_loss(xyz.float(), xyz_label.float(), model_lddt)
 
                 loss = [\
@@ -82,7 +81,7 @@ class Train():
                     phi_loss, \
                     weight * xyz_loss, \
                     weight * dis_loss_whole, \
-                    # dis_loss_ca, \
+                    # # dis_loss_ca, \
                     lddt_loss
                     ]
                 # print("loss ", ["%.3f" % i.data for i in loss], end = " ")
