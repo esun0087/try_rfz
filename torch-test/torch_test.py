@@ -241,8 +241,30 @@ import torch
 # a = torch.arange(12).reshape(-1, 3).float()
 # print(torch.mean(a, -1))
 
-a = torch.arange(12).reshape(-1, 3).float()
-mask = a < 5
-print(mask)
-b = a.masked_fill(mask, -1)
-print(b)
+# a = torch.arange(12).reshape(-1, 3).float()
+# mask = a < 5
+# print(mask)
+# b = a.masked_fill(mask, -1)
+# print(b)
+
+class Mod(nn.Module):
+    def __init__(self):
+        super(Mod, self).__init__()
+        self.fc = nn.Linear(1, 10)
+        self.fc2 = nn.ModuleList([nn.Linear(10, 10), nn.Linear(10, 10), nn.Linear(10, 10)])
+
+    def forward(self, x):
+        x = self.fc(x)
+        for f in self.fc2:
+            x = f(x)
+        return x
+
+
+mod = Mod()
+# torch.save(mod.state_dict(), "final.pt")
+mod.load_state_dict(torch.load("final.pt"))
+# print(mod.state_dict())
+data = torch.randn(2, 1)
+print(mod(data))
+# for  i in mod.parameters():
+#     print(i)

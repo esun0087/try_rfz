@@ -89,7 +89,7 @@ class Refine_Network(nn.Module):
         node = self.norm_node(self.embed_x(node))
         pair = self.norm_edge1(self.embed_e1(pair))
         
-        neighbor = get_bonded_neigh(idx)
+        neighbor = get_bonded_neigh(idx) # 下标中的位置
         rbf_feat = rbf(torch.cdist(xyz[:,:,1,:], xyz[:,:,1,:]))
         pair = torch.cat((pair, rbf_feat, neighbor), dim=-1)
         pair = self.norm_edge2(self.embed_e2(pair))
@@ -130,48 +130,15 @@ class Refine_module(nn.Module):
         
         self.pred_lddt = nn.Sequential(nn.Linear(SE3_param['l0_out_features'], 1), nn.Sigmoid())
 
-    def forward_bak(self, node, edge, seq1hot, idx, use_transf_checkpoint=False, eps=1e-4):
+    def forward(self, node, edge, seq1hot, idx):
         edge = self.proj_edge(edge)
 
-        xyz, state = self.regen_net(seq1hot, idx, node, edge)
-        # print(f"region net xyz {xyz.shape} state {state.shape} input seq1hot {seq1hot.shape} idx {idx.shape} edge {edge.shape}", )
-        B, L = xyz.shape[:2]
-       
-        # DOUBLE IT w/ Mirror images 
-        xyz = torch.cat([xyz, xyz*torch.tensor([1,1,-1], dtype=xyz.dtype, device=xyz.device)])
-        state = torch.cat([state, state])
-        node = torch.cat([node, node])
-        edge = torch.cat([edge, edge])
-        idx = torch.cat([idx, idx])
-        seq1hot = torch.cat([seq1hot, seq1hot])
-
-        # print(f"init refine_net xyz {xyz.shape} state {state.shape} node {node.shape} edge {edge.shape} idx {idx.shape} seq1hot {seq1hot.shape} best_lddt {best_lddt.shape}")
-        # for test train
-        for i_m in range(self.n_module):
-            if use_transf_checkpoint:
-                xyz, state = checkpoint.checkpoint(create_custom_forward(self.refine_net[i_m], top_k=64), node.float(), edge.float(), xyz.detach().float(), state.float(), seq1hot, idx)
-            else:
-                xyz, state = self.refine_net[i_m](node.float(), edge.float(), xyz.detach().float(), state.float(), seq1hot, idx, top_k=64)
-        #
-        lddt = self.pred_lddt(self.norm_state(state)) 
-        lddt = torch.clamp(lddt, 0.0, 1.0)[...,0]
-        # print(f"ldd shape {lddt.shape} lddt mean {lddt.mean(-1).shape}" )
-        lddt = lddt.reshape(B,-1, L)
-        xyz = xyz.reshape(B, -1, L, 3, 3)
-        pick = lddt.mean(-1).argmax(1)
-        batch_idxs = torch.arange(B).long()
-        return xyz[batch_idxs, pick], lddt[batch_idxs, pick]
-
-    def forward(self, node, edge, seq1hot, idx, use_transf_checkpoint=True, eps=1e-4):
-        edge = self.proj_edge(edge)
-
-        xyz, state = self.regen_net(seq1hot, idx, node, edge)
+        xyz, state = self.regen_net(seq1hot, idx, node, edge) # 用node和edge，经过图网络生成坐标信息
         # print(f"region net xyz {xyz.shape} state {state.shape} input seq1hot {seq1hot.shape} idx {idx.shape} edge {edge.shape}", )
        
         # for test train
         for i_m in range(self.n_module):
-            if use_transf_checkpoint:
-                xyz, state = checkpoint.checkpoint(create_custom_forward(self.refine_net[i_m], top_k=64), node.float(), edge.float(), xyz.float(), state.float(), seq1hot, idx)
+            xyz, state = checkpoint.checkpoint(create_custom_forward(self.refine_net[i_m], top_k=64), node.float(), edge.float(), xyz.float(), state.float(), seq1hot, idx)
         #
         lddt = self.pred_lddt(self.norm_state(state)) 
         return xyz, lddt

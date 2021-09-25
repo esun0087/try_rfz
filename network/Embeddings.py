@@ -71,12 +71,15 @@ class MSA_emb(nn.Module):
         super(MSA_emb, self).__init__()
         self.emb = nn.Embedding(d_msa, d_model)
         self.pos = PositionalEncoding(d_model, p_drop=p_drop, max_len=max_len)
-        self.pos_q = QueryEncoding(d_model)
+        self.pos_q = QueryEncoding(d_model) 
     def forward(self, msa, idx):
+        """
+        感觉目的是加一些位置信息的embedding
+        """
         B, N, L = msa.shape
-        out = self.emb(msa) # (B, N, L, K//2)
+        out = self.emb(msa) # (B, N, L, K//2)  单纯只是embedding
         out = self.pos(out, idx) # add positional encoding
-        return self.pos_q(out) # add query encoding
+        return self.pos_q(out) # add query encoding， 依旧是pos embedding,感觉是加了一个没啥意思的内容
 
 # pixel-wise attention based embedding (from trRosetta-tbm)
 class Templ_emb(nn.Module):
@@ -98,9 +101,9 @@ class Templ_emb(nn.Module):
         #   - t1d: 1D template info (B, T, L, 2)
         #   - t2d: 2D template info (B, T, L, L, 10)
         B, T, L, _ = t1d.shape
-        left = t1d.unsqueeze(3).expand(-1,-1,-1,L,-1)
+        left = t1d.unsqueeze(3).expand(-1,-1,-1,L,-1) # 单纯是扩张维度,每个位置都有两个打分， 强行把这个位置的数据扩展L次
         right = t1d.unsqueeze(2).expand(-1,-1,L,-1,-1)
-        seqsep = torch.abs(idx[:,:,None]-idx[:,None,:]) + 1
+        seqsep = torch.abs(idx[:,:,None]-idx[:,None,:]) + 1 # 这个就是位置信息了,两两之间的位置差
         seqsep.float().view(B,L,L,1)
         seqsep = torch.log(seqsep.float()).view(B,L,L,1).unsqueeze(1).expand(-1,T,-1,-1,-1)
         #
@@ -111,13 +114,14 @@ class Templ_emb(nn.Module):
         #
         # attention along L
         feat = torch.empty_like(tmp)
+        #这个就是很粗暴了,直接对每个数据做处理， 怀疑是因为mask太难搞，因此直接每个数据分开做了
         for i_f in range(tmp.shape[0]):
             feat[i_f] = self.encoder_L(tmp[i_f].view(1,L,L,-1))
         del tmp
         feat = feat.reshape(B, T, L, L, -1)
         feat = feat.permute(0,2,3,1,4).contiguous().reshape(B, L*L, T, -1)
         
-        attn = self.to_attn(self.norm(feat))
+        attn = self.to_attn(self.norm(feat)) #获取权值
         attn = F.softmax(attn, dim=-2) # (B, L*L, T, 1)
         feat = torch.matmul(attn.transpose(-2, -1), feat)
         return feat.reshape(B, L, L, -1)
@@ -139,6 +143,7 @@ class Pair_emb_w_templ(nn.Module):
         L = seq.shape[1]
         #
         # get initial sequence pair features
+        # 这部分处理跟上边的Templ_emb 很相似，是一种参考idx的方法
         seq = self.emb(seq) # (B, L, d_model//2)
         left  = seq.unsqueeze(2).expand(-1,-1,L,-1)
         right = seq.unsqueeze(1).expand(-1,L,-1,-1)

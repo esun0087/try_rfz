@@ -349,6 +349,8 @@ class IterBlock_w_Str(nn.Module):
         # input:
         #   msa: initial MSA embeddings (N, L, d_msa)
         #   pair: initial residue pair embeddings (L, L, d_pair)
+        # 依赖于 xyz对msa信息进行更新
+        # msa和pair之间的相互更新
             
         # 1. process MSA features
         msa, att = self.msa2msa(msa)
@@ -392,6 +394,7 @@ class FinalBlock(nn.Module):
         # input:
         #   msa: initial MSA embeddings (N, L, d_msa)
         #   pair: initial residue pair embeddings (L, L, d_pair)
+        # 这个模块跟上边的模块IterBlock_w_Str 非常相似， 仅仅是多了lddt模块，以及删除了str2msa的模块
             
         # 1. process MSA features
         msa, att = self.msa2msa(msa)
@@ -463,8 +466,9 @@ class IterativeFeatureExtractor(nn.Module):
         #   msa: initial MSA embeddings (N, L, d_msa)
         #   pair: initial residue pair embeddings (L, L, d_pair)
         # msa信息， pair信息， onehot信息， idx位置信息
+        # 主要对msa和pair信息进行更新，
+        # 使用的是msa, pair, seq1hot, idx, 以及xyz信息，xyz主要是用于计算距离，寻找距离近的点做msa的更新
         
-        pair_s = list()
         pair = self.initial(pair)
         if self.n_module > 0:
             for i_m in range(self.n_module):
@@ -478,14 +482,15 @@ class IterativeFeatureExtractor(nn.Module):
         # 使用se3进行优化坐标 
         # 当然， 这一块也对msa和pair进行参考更新
         # 老样子， msa， pair， index， onehot信息， 一个都不能少
-        # top_ks = [128, 128, 64, 64]
-        top_ks = [16, 16, 8, 8]
+        # 使用xyz对msa进行更新
+        top_ks = [128, 128, 64, 64]
         if self.n_module_str > 0:
             for i_m in range(self.n_module_str):
                 # 这个流程中lddt没用到
                 msa, pair, xyz = self.iter_block_2[i_m](msa, pair, xyz, seq1hot, idx, top_k=top_ks[i_m])
         # 再次使用se3优化坐标
         # 感觉跟上边的iter_block_2没啥区别
+        # 就是多了lddt,很怀疑这块可以用iter_block_2 代替
         msa, pair, xyz, lddt = self.final(msa, pair, xyz, seq1hot, idx)
 
         return msa[:,0], pair, xyz, lddt
