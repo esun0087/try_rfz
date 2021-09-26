@@ -7,7 +7,7 @@ from InitStrGenerator import get_seqsep, UniMPBlock
 from Attention_module_w_str import make_graph as make_graph_topk
 from Attention_module_w_str import get_bonded_neigh, rbf
 from SE3_network import SE3Transformer
-from Transformer import create_custom_forward
+from Transformer import _get_clones, create_custom_forward
 # Re-generate initial coordinates based on 1) final pair features 2) predicted distogram
 # Then, refine it through multiple SE3 transformer block
 
@@ -123,9 +123,9 @@ class Refine_module(nn.Module):
                                        edge_dim_in=d_pair_hidden*2, edge_dim_hidden=d_pair_hidden,
                                        state_dim=SE3_param['l0_out_features'],
                                        nheads=4, nblocks=3, dropout=p_drop)
-        self.refine_net = Refine_Network(d_node=d_node, d_pair=d_pair_hidden*2,
+        self.refine_net = _get_clones(Refine_Network(d_node=d_node, d_pair=d_pair_hidden*2,
                                          d_state=SE3_param['l0_out_features'],
-                                         SE3_param=SE3_param, p_drop=p_drop)
+                                         SE3_param=SE3_param, p_drop=p_drop), self.n_module)
         self.norm_state = LayerNorm(SE3_param['l0_out_features'])
         
         self.pred_lddt = nn.Sequential(nn.Linear(SE3_param['l0_out_features'], 1), nn.Sigmoid())
@@ -137,9 +137,8 @@ class Refine_module(nn.Module):
         # print(f"region net xyz {xyz.shape} state {state.shape} input seq1hot {seq1hot.shape} idx {idx.shape} edge {edge.shape}", )
        
         # for test train
-        func = create_custom_forward(self.refine_net, top_k=64)
         for i_m in range(self.n_module):
-            xyz, state = checkpoint.checkpoint(func, node.float(), edge.float(), xyz.float(), state.float(), seq1hot, idx)
+            xyz, state = checkpoint.checkpoint(create_custom_forward(self.refine_net[i_m], top_k=64), node.float(), edge.float(), xyz.float(), state.float(), seq1hot, idx)
         #
         lddt = self.pred_lddt(self.norm_state(state)) 
         return xyz, lddt

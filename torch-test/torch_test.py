@@ -1,3 +1,4 @@
+from numpy.core.numeric import cross
 import torch.nn as nn
 import torch
 # loss = nn.CrossEntropyLoss()
@@ -247,24 +248,41 @@ import torch
 # b = a.masked_fill(mask, -1)
 # print(b)
 
-class Mod(nn.Module):
-    def __init__(self):
-        super(Mod, self).__init__()
-        self.fc = nn.Linear(1, 10)
-        self.fc2 = nn.ModuleList([nn.Linear(10, 10), nn.Linear(10, 10), nn.Linear(10, 10)])
+# class Mod(nn.Module):
+#     def __init__(self):
+#         super(Mod, self).__init__()
+#         self.fc = nn.Linear(1, 10)
+#         self.fc2 = nn.ModuleList([nn.Linear(10, 10), nn.Linear(10, 10), nn.Linear(10, 10)])
 
-    def forward(self, x):
-        x = self.fc(x)
-        for f in self.fc2:
-            x = f(x)
-        return x
+#     def forward(self, x):
+#         x = self.fc(x)
+#         for f in self.fc2:
+#             x = f(x)
+#         return x
 
 
-mod = Mod()
-# torch.save(mod.state_dict(), "final.pt")
-mod.load_state_dict(torch.load("final.pt"))
-# print(mod.state_dict())
-data = torch.randn(2, 1)
-print(mod(data))
-# for  i in mod.parameters():
-#     print(i)
+# mod = Mod()
+# # torch.save(mod.state_dict(), "final.pt")
+# mod.load_state_dict(torch.load("final.pt"))
+# # print(mod.state_dict())
+# data = torch.randn(2, 1)
+# print(mod(data))
+# # for  i in mod.parameters():
+# #     print(i)
+
+import numpy as np
+def get_fa_vec(p1, p2, p3):
+    x1 = p2 - p1
+    x2 = p3 - p1
+    x1 = x1 / np.linalg.norm(x1)
+    x2 = x2 / np.linalg.norm(x2)
+    # cos_theta = np.dot(x1, x2)
+    # v_vertical_x1 = x2 - cos_theta * x1
+    v_vertical_x1 = x2
+    cross_v = np.cross(v_vertical_x1, x1)
+    print(x1, v_vertical_x1, cross_v)
+    print(np.dot(cross_v, x1), np.dot(cross_v, x2), np.dot(cross_v, v_vertical_x1))
+p1 = np.array([0,0., 0])
+p2 = np.array([1,2.,0])
+p3 = np.array([2, 1.,2])
+get_fa_vec(p1, p2, p3)
