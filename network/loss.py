@@ -52,7 +52,7 @@ class Loss:
         mask = mask * (dmat_true < 20).float()
         
         dmat_true = dmat_true.masked_fill(~mask.bool(), 0)
-        dmat_predicted = mask * dmat_predicted
+        dmat_predicted = dmat_predicted.masked_fill(~mask.bool(), 0)
         dmat_true = mask * dmat_true
         mse_loss = torch.nn.MSELoss()
         loss = mse_loss(dmat_predicted, dmat_true)
