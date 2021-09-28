@@ -112,5 +112,5 @@ class SE3Transformer(nn.Module):
 
         for layer in self.Gblock:
             h = layer(h, G=G, r=r, basis=basis)
-        print(f"forward {h['0'].shape} {h['1'].shape}")
+        # print(f"forward {h['0'].shape} {h['1'].shape}")
         return h

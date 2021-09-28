@@ -791,8 +791,8 @@ class GSE3Res(nn.Module):
 
         # Attention
         z = self.GMAB['attn'](v, k=k, q=q, G=G)
-        for i in q:
-            print("attention", i, q[i].shape, k[i].shape, v[i].shape, z[i].shape)
+        # for i in q:
+        #     print("attention", i, q[i].shape, k[i].shape, v[i].shape, z[i].shape)
         if self.skip == 'cat':
             z = self.cat(z, features)
             z = self.project(z)
@@ -800,7 +800,7 @@ class GSE3Res(nn.Module):
             # Skip + residual
             z = self.project(z)
             z = self.add(z, features)
-        print("final", z['0'].shape, z['1'].shape)
+        # print("final", z['0'].shape, z['1'].shape)
         return z
 
 ### Helper and wrapper functions

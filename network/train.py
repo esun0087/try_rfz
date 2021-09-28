@@ -13,13 +13,16 @@ import torch.optim as optim
 from torch.optim import lr_scheduler
 import data_reader
 import lddt_torch
-from torch.nn.utils import clip_grad_norm_
+from torch.nn.utils import clip_grad_value_
 from multi_backward import MultiBackward
 from loss import Loss
+import time
 script_dir = '/'.join(os.path.dirname(os.path.realpath(__file__)).split('/')[:-1])
 from train_config import *
 torch.autograd.set_detect_anomaly(True)
 
+def get_time():
+    return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) 
 class Train():
     def __init__(self, use_cpu=False):
         #
@@ -84,14 +87,16 @@ class Train():
                     ]
                 print("all loss ", ["%.2f" % i.data for i in loss], "weight", weight)
                 sum_loss = sum(loss)
+                clip_grad_value_(self.model.parameters(), 1)
                 multi_back.add_loss(sum_loss)
                 avg_loss += sum_loss.cpu().detach().numpy()
-                # clip_grad_norm_(self.model.parameters(), max_norm=3, norm_type=2)
                 data_cnt += 1
+            clip_grad_value_(self.model.parameters(), 1)
             del (multi_back)
             
             scheduler.step()
             avg_loss = avg_loss / data_cnt
+            print("time is ", get_time(), end = " ")
             print(f"=====train epoch {epoch} avg_loss {avg_loss} lddt {lddt_result} model lddt {torch.mean(model_lddt)}")
 
     def for_single(self, msa, t1d, t2d):

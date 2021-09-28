@@ -6,7 +6,7 @@ import pickle
 def read_data_true_mask(data_path):
     f = open(data_path, "rb")
     data = pickle.load(f)
-    data = data[1:]
+    # data = data[1:]
     
     train_data = []
     for feat, label, masks in data:
