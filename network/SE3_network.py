@@ -104,8 +104,13 @@ class SE3Transformer(nn.Module):
         # type_0_features msa特征
         # type_1_features 坐标信息
         basis, r = get_basis_and_r(G, self.num_degrees-1)
+        # print(basis.keys(), r.requires_grad)
+        # r 只是单纯的用边的xyz距离信息算了个综合距离 r = sqrt(x * x + y * y + z * z)
+        # basis 比较复杂， 计算的是球面谐波的一些信息
+        # 理解没错的话， basis和r都是参考信息， 不需要做梯度的。
         h = {'0': type_0_features, '1': type_1_features}
 
         for layer in self.Gblock:
             h = layer(h, G=G, r=r, basis=basis)
+        print(f"forward {h['0'].shape} {h['1'].shape}")
         return h

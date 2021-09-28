@@ -50,6 +50,7 @@ def get_basis(G, max_degree, compute_gradients):
         r_ij = utils_steerable.get_spherical_from_cartesian_torch(cloned_d)
         # Spherical harmonic basis
         Y = utils_steerable.precompute_sh(r_ij, 2*max_degree)
+        # print(cloned_d.shape, r_ij.shape, Y.keys()  )
         device = Y[0].device
 
         basis = {}
@@ -790,7 +791,8 @@ class GSE3Res(nn.Module):
 
         # Attention
         z = self.GMAB['attn'](v, k=k, q=q, G=G)
-
+        for i in q:
+            print("attention", i, q[i].shape, k[i].shape, v[i].shape, z[i].shape)
         if self.skip == 'cat':
             z = self.cat(z, features)
             z = self.project(z)
@@ -798,6 +800,7 @@ class GSE3Res(nn.Module):
             # Skip + residual
             z = self.project(z)
             z = self.add(z, features)
+        print("final", z['0'].shape, z['1'].shape)
         return z
 
 ### Helper and wrapper functions
