@@ -7,6 +7,7 @@ class Loss:
         pass
 
     def cross_loss_mask(self, pred_, true_, mask):
+        # mask 需要的数据设置为1
         true_ = true_.masked_fill(~mask.bool(), 0)
         pred_ = pred_.reshape(-1, pred_.shape[-1])
         true_ = torch.flatten(true_)
@@ -30,9 +31,9 @@ class Loss:
         for pred_true, cur_true in zip(pred_, true_):
             mse_loss = torch.nn.MSELoss()
             R, t = get_r_t(pred_true, cur_true)
-            cur_mask = torch.isnan(cur_true)
+            cur_mask = torch.isnan(cur_true) # 不需要的设置为1
 
-            pred_true = cur_mask * pred_true
+            pred_true = pred_true.masked_fill(cur_mask, 0)
             cur_true = cur_true.masked_fill(cur_mask, 0)
             pred_rotate = torch.matmul(pred_true, R) + t
             c = mse_loss(pred_rotate, cur_true)
@@ -93,13 +94,12 @@ class Loss:
         xyz_label_ca = true_.view(batch_size, -1, 3, 3)[:,:,1]
         mask = torch.isnan(xyz_label_ca)
 
-        # xyz_label_ca = xyz_label_ca.masked_fill(mask, 0)
-        # xyz_ca = xyz_ca.masked_fill(mask, 0)
+        xyz_label_ca = xyz_label_ca.masked_fill(mask, 0)
+        xyz_ca = xyz_ca.masked_fill(mask, 0)
+        model_lddt = model_lddt.masked_fill(mask[:,:,0], 0)
 
         lddt_result = lddt_torch.lddt(xyz_ca.float(), xyz_label_ca.float(), 15, True)
-        mse_loss = torch.nn.MSELoss(reduction='none')
+        mse_loss = torch.nn.MSELoss()
         loss = mse_loss(model_lddt, lddt_result)
-        loss = (~mask[:,:,0]).float() * loss
-        loss = torch.mean(loss)
         return loss
         

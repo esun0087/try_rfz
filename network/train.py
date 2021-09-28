@@ -16,7 +16,7 @@ import data_reader
 import lddt_torch
 import rigid_transform_3D
 from loss import Loss
-from torch.nn.utils import clip_grad_norm_
+from torch.nn.utils import clip_grad_value_
 script_dir = '/'.join(os.path.dirname(os.path.realpath(__file__)).split('/')[:-1])
 from train_config import *
 
@@ -81,20 +81,15 @@ class Train():
                     phi_loss, \
                     weight * xyz_loss, \
                     weight * dis_loss_whole, \
-                    # # dis_loss_ca, \
+                    # dis_loss_ca, \
                     lddt_loss
                     ]
-                # print("loss ", ["%.3f" % i.data for i in loss], end = " ")
+                print("loss ", ["%.3f" % i.data for i in loss], end = " ")
                 sum_loss = sum(loss)
-                avg_loss += sum_loss.cpu().detach().numpy()
-                if 1:
-                    for i, lo in enumerate(loss):
-                        if i == len(loss) - 1:
-                            lo.backward()
-                        else:
-                            lo.backward(retain_graph=True)
-                clip_grad_norm_(self.model.parameters(), max_norm=3, norm_type=2)
+                sum_loss.backward()
                 optimizer.step()
+                clip_grad_value_(self.model.parameters(), 1)
+                avg_loss += sum_loss.cpu().detach().numpy()
                 data_cnt += 1
             scheduler.step()
             avg_loss = avg_loss / data_cnt
@@ -116,7 +111,6 @@ class Train():
             logit_s[i] = v.permute(0,2,3,1)
         return xyz, lddt, logit_s # 目前只知道距离的计算方法，还不知道角度的计算方法
     def get_model_result(self, msa, xyz_t, t1d, t0d, lens_info = None):
-        B, N, L = msa.shape
         # msa = torch.tensor(msa).long()
         xyz_t = xyz_t.float()
         t1d = t1d.float()

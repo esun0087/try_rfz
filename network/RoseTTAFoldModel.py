@@ -98,7 +98,7 @@ class RoseTTAFoldModule_e2e(nn.Module):
 
     def get_msa_mask(self, feat, lens_info):
         B = feat.shape[0]
-        mask_like = torch.ones_like(feat)
+        mask_like = torch.ones_like(feat) # 不要的地方被设置为1
         for idx in range(B):
             mask_like[idx][:,:lens_info[idx]] = 0
         mask_like = mask_like.bool()
@@ -142,8 +142,13 @@ class RoseTTAFoldModule_e2e(nn.Module):
         for l in logits:
             prob_s.append(nn.Softmax(dim=1)(l)) # (B, C, L, L)
         prob_s = torch.cat(prob_s, dim=1).permute(0,2,3,1)
-        
-        B, L = ret_msa.shape[:2]
-        ref_xyz, ref_lddt = self.refine(ret_msa, prob_s, seq1hot, idx)
 
-        return logits, ret_msa, ref_xyz, ref_lddt.view(B,L)
+        ret_xyz = torch.empty(B, L, 3, 3)
+        ret_lddt = torch.empty(B, L, 1)
+        for i in range(B):
+            cur_l = lens_info[i]
+            cur_msa, cur_probs, cur_seq1hot, cur_idx = ret_msa[i, :cur_l].unsqueeze(0), prob_s[i, :cur_l, :cur_l].unsqueeze(0), \
+                seq1hot[i,:cur_l].unsqueeze(0), idx[i, :cur_l].unsqueeze(0)
+            ret_xyz[i, :cur_l], ret_lddt[i, :cur_l] = self.refine(cur_msa, cur_probs, cur_seq1hot, cur_idx)
+
+        return logits, ret_msa, ret_xyz, ret_lddt.view(B,L)

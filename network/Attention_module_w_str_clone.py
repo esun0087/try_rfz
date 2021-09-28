@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from Transformer import *
+from Transformer import _get_clones
 import Transformer
 from resnet import ResidualNetwork
 from SE3_network import SE3Transformer
@@ -423,7 +424,7 @@ class IterativeFeatureExtractor(nn.Module):
                                  performer_L_opts=performer_L_opts)
 
         if self.n_module > 0:
-            self.iter_block_1 = IterBlock(n_layer=n_layer, 
+            self.iter_block_1 = _get_clones(IterBlock(n_layer=n_layer, 
                                                       d_msa=d_msa, d_pair=d_pair,
                                                       n_head_msa=n_head_msa,
                                                       n_head_pair=n_head_pair,
@@ -432,14 +433,14 @@ class IterativeFeatureExtractor(nn.Module):
                                                       p_drop=p_drop,
                                                       performer_N_opts=performer_N_opts,
                                                       performer_L_opts=performer_L_opts
-                                                      )
+                                                      ), n_module)
         
         self.init_str = InitStr_Network(node_dim_in=d_msa, node_dim_hidden=d_hidden,
                                         edge_dim_in=d_pair, edge_dim_hidden=d_hidden,
                                         nheads=4, nblocks=3, dropout=p_drop)
 
         if self.n_module_str > 0:
-            self.iter_block_2 = IterBlock_w_Str(n_layer=n_layer, 
+            self.iter_block_2 = _get_clones(IterBlock_w_Str(n_layer=n_layer, 
                                                       d_msa=d_msa, d_pair=d_pair,
                                                       n_head_msa=n_head_msa,
                                                       n_head_pair=n_head_pair,
@@ -449,7 +450,7 @@ class IterativeFeatureExtractor(nn.Module):
                                                       performer_N_opts=performer_N_opts,
                                                       performer_L_opts=performer_L_opts,
                                                       SE3_param=SE3_param
-                                                      )
+                                                      ), n_module_str)
         
         self.final = FinalBlock(n_layer=n_layer, d_msa=d_msa, d_pair=d_pair,
                                n_head_msa=n_head_msa, n_head_pair=n_head_pair, r_ff=r_ff,
@@ -468,7 +469,7 @@ class IterativeFeatureExtractor(nn.Module):
             for i_m in range(self.n_module):
                 # extract features from MSA & update original pair features
                 # 这个是做msa和pair特征的互相参考更新
-                msa, pair = self.iter_block_1(msa, pair)
+                msa, pair = self.iter_block_1[i_m](msa, pair)
         
         # 构图生成初始化坐标
         xyz = self.init_str(seq1hot, idx, msa, pair)
@@ -481,7 +482,7 @@ class IterativeFeatureExtractor(nn.Module):
         if self.n_module_str > 0:
             for i_m in range(self.n_module_str):
                 # 这个流程中lddt没用到
-                msa, pair, xyz = self.iter_block_2(msa, pair, xyz, seq1hot, idx, top_k=top_ks[i_m])
+                msa, pair, xyz = self.iter_block_2[i_m](msa, pair, xyz, seq1hot, idx, top_k=top_ks[i_m])
         # 再次使用se3优化坐标
         # 感觉跟上边的iter_block_2没啥区别,主要是多了lddt
         msa, pair, xyz, lddt = self.final(msa, pair, xyz, seq1hot, idx)
