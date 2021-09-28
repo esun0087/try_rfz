@@ -26,7 +26,7 @@ class Loss:
             true_coords = true_ca[select_atoms].view(-1, 3)
             pred_coords = pred_ca[select_atoms].view(-1, 3)
             if torch.sum(torch.isnan(pred_coords)) > 0:
-                print("bad", pred_coords)
+                print("bad tensor",)
             R, t = rigid_transform_3D.rigid_transform_3D2(pred_coords, true_coords)
             return R, t
         losses = 0

@@ -48,11 +48,7 @@ class Train():
             avg_loss, data_cnt = 0, 0
             weight = (epoch + 1) / epoch_max * 0.2 + 0.05
             for i, data in enumerate(dataloader):
-                if len(data) == 3:
-                    feat, label, masks = data
-                    lens_info = None
-                else:
-                    feat, label, masks, lens_info = data
+                feat, label, masks, lens_info = data
                 feat = [i.to(self.device) for i in feat]
                 label = [i.to(self.device) for i in label]
                 dis_mask = masks.to(self.device)

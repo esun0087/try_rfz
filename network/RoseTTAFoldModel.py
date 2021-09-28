@@ -140,15 +140,23 @@ class RoseTTAFoldModule_e2e(nn.Module):
         logits = self.c6d_predictor(ret_pair)
         prob_s = list()
         for l in logits:
+            if torch.sum(torch.isnan(l)) > 0:
+                print("logits nan")
             prob_s.append(nn.Softmax(dim=1)(l)) # (B, C, L, L)
         prob_s = torch.cat(prob_s, dim=1).permute(0,2,3,1)
 
-        ret_xyz = torch.empty(B, L, 3, 3)
-        ret_lddt = torch.empty(B, L, 1)
-        for i in range(B):
-            cur_l = lens_info[i]
-            cur_msa, cur_probs, cur_seq1hot, cur_idx = ret_msa[i, :cur_l].unsqueeze(0), prob_s[i, :cur_l, :cur_l].unsqueeze(0), \
-                seq1hot[i,:cur_l].unsqueeze(0), idx[i, :cur_l].unsqueeze(0)
-            ret_xyz[i, :cur_l], ret_lddt[i, :cur_l] = self.refine(cur_msa, cur_probs, cur_seq1hot, cur_idx)
-
+        # ret_xyz = torch.empty(B, L, 3, 3)
+        # ret_lddt = torch.empty(B, L, 1)
+        # for i in range(B):
+        #     cur_l = lens_info[i]
+        #     cur_msa, cur_probs, cur_seq1hot, cur_idx = ret_msa[i, :cur_l].unsqueeze(0), prob_s[i, :cur_l, :cur_l].unsqueeze(0), \
+        #         seq1hot[i,:cur_l].unsqueeze(0), idx[i, :cur_l].unsqueeze(0)
+        #     ret_xyz[i, :cur_l], ret_lddt[i, :cur_l] = self.refine(cur_msa, cur_probs, cur_seq1hot, cur_idx)
+        ret_xyz, ret_lddt = self.refine(ret_msa, prob_s, seq1hot, idx)
+        if torch.sum(torch.isnan(ret_msa)) > 0:
+            print("msa nan")
+        if torch.sum(torch.isnan(ret_xyz)) > 0:
+            print("ret_xyz nan")
+        if torch.sum(torch.isnan(ret_lddt)) > 0:
+            print("ret_lddt nan")
         return logits, ret_msa, ret_xyz, ret_lddt.view(B,L)
