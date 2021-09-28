@@ -14,12 +14,14 @@ import torch.optim as optim
 from torch.optim import lr_scheduler
 import data_reader
 import lddt_torch
-import rigid_transform_3D
 from loss import Loss
+import time 
 from torch.nn.utils import clip_grad_value_
 script_dir = '/'.join(os.path.dirname(os.path.realpath(__file__)).split('/')[:-1])
 from train_config import *
 
+def get_time():
+    return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) 
 class Train():
     def __init__(self, use_cpu=False):
         #
@@ -87,12 +89,13 @@ class Train():
                 print("loss ", ["%.3f" % i.data for i in loss], end = " ")
                 sum_loss = sum(loss)
                 sum_loss.backward()
-                optimizer.step()
                 clip_grad_value_(self.model.parameters(), 1)
+                optimizer.step()
                 avg_loss += sum_loss.cpu().detach().numpy()
                 data_cnt += 1
             scheduler.step()
             avg_loss = avg_loss / data_cnt
+            print("time is", get_time(), end = " ")
             print(f"=================train epoch {epoch} {'%.3f' % avg_loss} lddt {lddt_result}")
             epoch += 1
 

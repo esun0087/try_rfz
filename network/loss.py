@@ -25,6 +25,8 @@ class Loss:
             select_atoms = torch.where(~torch.isnan(true_ca))
             true_coords = true_ca[select_atoms].view(-1, 3)
             pred_coords = pred_ca[select_atoms].view(-1, 3)
+            if torch.sum(torch.isnan(pred_coords)) > 0:
+                print("bad", pred_coords)
             R, t = rigid_transform_3D.rigid_transform_3D2(pred_coords, true_coords)
             return R, t
         losses = 0
@@ -55,8 +57,7 @@ class Loss:
         mask = mask * (dmat_true < 20).float()
         
         dmat_true = dmat_true.masked_fill(~mask.bool(), 0)
-        dmat_predicted = mask * dmat_predicted
-        dmat_true = mask * dmat_true
+        dmat_predicted = dmat_predicted.masked_fill(~mask.bool(), 0)
         mse_loss = torch.nn.MSELoss()
         loss = mse_loss(dmat_predicted, dmat_true)
         loss = torch.sqrt(loss)
@@ -99,6 +100,7 @@ class Loss:
         model_lddt = model_lddt.masked_fill(mask[:,:,0], 0)
 
         lddt_result = lddt_torch.lddt(xyz_ca.float(), xyz_label_ca.float(), 15, True)
+        lddt_result = lddt_result.masked_fill(mask[:,:,0], 0)
         mse_loss = torch.nn.MSELoss()
         loss = mse_loss(model_lddt, lddt_result)
         return loss
