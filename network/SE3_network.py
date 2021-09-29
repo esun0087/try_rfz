@@ -69,6 +69,8 @@ class SE3Transformer(nn.Module):
         self.si_m, self.si_e = si_m, si_e
         self.x_ij = x_ij
 
+        # fiber 不懂是用来做什么的
+
         if l1_out_features > 0:
             fibers = {'in': Fiber(dictionary={0: l0_in_features, 1: l1_in_features}),
                            'mid': Fiber(self.num_degrees, self.num_channels),
@@ -84,6 +86,7 @@ class SE3Transformer(nn.Module):
     def _build_gcn(self, fibers):
         # Equivariant layers
         Gblock = []
+        # 在这里应该是串起来了 in mid mid mid mid mid out
         fin = fibers['in']
         for i in range(self.num_layers):
             Gblock.append(GSE3Res(fin, fibers['mid'], edge_dim=self.edge_dim,
@@ -103,10 +106,11 @@ class SE3Transformer(nn.Module):
         # Compute equivariant weight basis from relative positions
         # type_0_features msa特征
         # type_1_features 坐标信息
+        # degree 的作用一直没想明白
         basis, r = get_basis_and_r(G, self.num_degrees-1)
         # print(basis.keys(), r.requires_grad)
         # r 只是单纯的用边的xyz距离信息算了个综合距离 r = sqrt(x * x + y * y + z * z)
-        # basis 比较复杂， 计算的是球面谐波的一些信息
+        # basis 比较复杂， 计算的是球面谐波的一些信息，看注释说的是旋转不变的信息， 不知道怎么做的
         # 理解没错的话， basis和r都是参考信息， 不需要做梯度的。
         h = {'0': type_0_features, '1': type_1_features}
 

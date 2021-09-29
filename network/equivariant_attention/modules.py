@@ -100,8 +100,12 @@ def get_basis_and_r(G, max_degree, compute_gradients=False):
         dict of equivariant bases, keys are in form '<d_in><d_out>'
         vector of relative distances, ordered according to edge ordering of G
     """
+    #  暂时不懂这个返回的是什么
+    # 不过这个用的也是edata['d'], 感觉还是根据距离计算了一些信息,或者说两个数据之间的坐标向量差值
     basis = get_basis(G, max_degree, compute_gradients)
-    r = get_r(G)
+    # 只是单纯的一个计算距离的操作， 因此返回的是L * L, 
+    # edata['d']存储的是x y z之间的差距，这里只是直接计算了一个和
+    r = get_r(G) 
     return basis, r
 
 
@@ -787,20 +791,22 @@ class GSE3Res(nn.Module):
         # Embeddings
         v = self.GMAB['v'](features, G=G, **kwargs)
         k = self.GMAB['k'](features, G=G, **kwargs)
-        q = self.GMAB['q'](features, G=G)
+        q = self.GMAB['q'](features, G=G) # 这里边G没有用到
 
         # Attention
         z = self.GMAB['attn'](v, k=k, q=q, G=G)
         # for i in q:
         #     print("attention", i, q[i].shape, k[i].shape, v[i].shape, z[i].shape)
+
+        # 有种把坐标旋转之后， 在对特征进行更新的感觉，
         if self.skip == 'cat':
             z = self.cat(z, features)
             z = self.project(z)
+
         elif self.skip == 'sum':
             # Skip + residual
             z = self.project(z)
             z = self.add(z, features)
-        # print("final", z['0'].shape, z['1'].shape)
         return z
 
 ### Helper and wrapper functions

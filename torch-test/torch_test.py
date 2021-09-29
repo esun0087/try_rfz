@@ -298,3 +298,23 @@ import torch
 # loss = mse_loss(c, b)
 # loss.backward()
 # print(a.grad)
+
+# import torch
+# from torch.utils.data import Dataset
+# class DataRead(Dataset):
+#     def __init__(self) -> None:
+#         super().__init__()
+#         self.data = torch.arange(100).view(-1, 20)
+#         pass
+#     def __len__(self):
+#         return len(self.data)
+
+#     def __getitem__(self, index):
+#         return self.data[index]
+
+# d = DataRead()
+# dataloader = torch.utils.data.DataLoader(d, batch_size=1, shuffle=True)
+# while 1:
+#     print("=" * 20)
+#     for i, data in enumerate(dataloader):
+#         print(data)
