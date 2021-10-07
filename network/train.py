@@ -51,6 +51,7 @@ class Train():
             multi_back = MultiBackward(optimizer, 1)
             weight = (epoch + 1) / epoch_max * 0.2 + 0.05
             for batch_idx, data in enumerate(dataloader):
+                optimizer.zero_grad()
                 feat, label, masks = data
                 feat = [i.to(self.device) for i in feat]
                 label = [i.to(self.device) for i in label]
@@ -88,11 +89,11 @@ class Train():
                 print("all loss ", ["%.2f" % i.data for i in loss], "weight", weight)
                 sum_loss = sum(loss)
                 clip_grad_value_(self.model.parameters(), 1)
-                multi_back.add_loss(sum_loss)
+                # multi_back.add_loss(sum_loss)
                 avg_loss += sum_loss.cpu().detach().numpy()
                 data_cnt += 1
             clip_grad_value_(self.model.parameters(), 1)
-            del (multi_back)
+            # del (multi_back)
             
             scheduler.step()
             avg_loss = avg_loss / data_cnt

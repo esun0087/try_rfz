@@ -291,12 +291,15 @@ import torch
 # get_fa_vec(p1, p2, p3)
 
 # a = torch.tensor([2,3,4.], requires_grad=True).float()
-# b = torch.tensor([7,2,3.]).float()
-# c = a.detach() * 4 + 6
-# c.requires_grad = True
-# mse_loss = torch.nn.MSELoss()
-# loss = mse_loss(c, b)
-# loss.backward()
+# b = torch.tensor([7,2,3.], requires_grad=True).float()
+# c = a.detach() * 4 + 6 * b
+# # c.requires_grad = True
+# c = torch.sum(c)
+# # mse_loss = torch.nn.MSELoss()
+# # loss = mse_loss(c, b)
+# # loss.backward()
+# c.backward()
+# d.backward()
 # print(a.grad)
 
 # import torch
@@ -318,3 +321,82 @@ import torch
 #     print("=" * 20)
 #     for i, data in enumerate(dataloader):
 #         print(data)
+
+
+# a = torch.tensor([2,3,4.], requires_grad=True).float()
+# b = torch.tensor([7,2,3.], requires_grad=True).float()
+# c = a.detach()
+
+# d = torch.sum(a * b)
+# e = torch.sum(b * c)
+# d.backward()
+# e.backward()
+# print(a.grad)
+import torch.utils.checkpoint as checkpoint
+import torch
+import torch.nn as nn
+
+
+# conv = nn.Conv2d(in_channels=1, out_channels=2, kernel_size=1)
+
+# def seg1(x):
+#     return conv(x)
+
+# print('查看conv里面的梯度，一开始应当全为0或None')
+# print(conv.weight.grad)
+# print(conv.bias.grad)
+
+# x = torch.ones(1, 1, 1, 1)
+# y = seg1(x).mean() - 3
+# y.backward()
+
+# print('查看conv里面的梯度，现在应该不为0了')
+# print(conv.weight.grad)
+# print(conv.bias.grad)
+
+# print('清空conv的梯度，进行下一次测试')
+# conv.weight.grad.data.zero_()
+# conv.bias.grad.data.zero_()
+
+# print('查看conv里面的梯度，现在应该全为0了')
+# print(conv.weight.grad)
+# print(conv.bias.grad)
+
+# y = checkpoint(seg1, x).mean() - 3
+# try:
+#     print('此时应当会失败，y并不是计算图的一部分，因为x的requires_grad为False，checkpoint认为这段函数是不需要计算梯度的')
+#     y.backward()
+# except RuntimeError as e:
+#     print('backward果然抛出异常了')
+
+# print('查看conv里面的梯度，现在应该保持不变，仍然全为0了')
+# print(conv.weight.grad)
+# print(conv.bias.grad)
+
+# print('让输入的requires_grad为True，有俩个办法，一个是直接设定x的requires_grad为True，另外一个办法就是与另外一个requires_grad为True的常量合并操作')
+# print('这里使用的是合并操作，因为有时候并不能直接设置输入的requires_grad=True，另外我认为合并操作占用的显存更少，因为grad的shape跟原始变量是一样的'
+#       '，使用合并操作，额外无用的grad的size只有1，而设定输入的requires_grad为True，额外无用的grad的size跟输入一样大')
+# x2 = x + torch.zeros(1, dtype=x.dtype, device=x.device, requires_grad=True)
+# y = checkpoint(seg1, x2).mean() - 3
+# y.backward()
+# print('现在backward不会报错了')
+# print('查看conv里面的梯度，现在不为0了')
+# print(conv.weight.grad)
+# print(conv.bias.grad)
+# print('实验完成')
+
+class Model(nn.Module):
+    def __init__(self):
+        super(Model, self).__init__()
+        self.fc = nn.Linear(1000, 1000)
+    def forward(self, x, y):
+        x = self.fc(x)
+        y = self.fc(y)
+        return x + y
+
+data = torch.randn(10, 1000)
+datay = torch.randn(10, 1000, requires_grad=False)
+model = Model()
+x = model(data, datay)
+# x = checkpoint.checkpoint(model, data, datay)
+print(x.requires_grad)

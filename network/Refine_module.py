@@ -79,6 +79,7 @@ class Refine_Network(nn.Module):
 
     @torch.cuda.amp.autocast(enabled=True)
     def forward(self, msa, pair, xyz, state, seq1hot, idx, top_k=64):
+        print("Refine_Network input", msa.requires_grad, pair.requires_grad, xyz.requires_grad, state.requires_grad, seq1hot.requires_grad, idx.requires_grad)
         # process node & pair features
         B, L = msa.shape[:2]
         node = self.norm_msa(msa)
@@ -89,6 +90,7 @@ class Refine_Network(nn.Module):
         node = self.norm_node(self.embed_x(node))
         pair = self.norm_edge1(self.embed_e1(pair))
         
+
         neighbor = get_bonded_neigh(idx) # 下标中的位置
         rbf_feat = rbf(torch.cdist(xyz[:,:,1,:], xyz[:,:,1,:]))
         pair = torch.cat((pair, rbf_feat, neighbor), dim=-1)
@@ -98,8 +100,13 @@ class Refine_Network(nn.Module):
         G = make_graph_topk(xyz, pair, idx, top_k=top_k)
         l1_feats = xyz - xyz[:,:,1,:].unsqueeze(2) # l1 features = displacement vector to CA
         l1_feats = l1_feats.reshape(B*L, -1, 3)
-        
         # apply SE(3) Transformer & update coordinates
+        # 图
+        # # 根据两两坐标关系，筛选tokp的作为边
+        # # edata['d'] 这个只是两两之间方向信息
+        # # edata['w'] 是pair的特征
+        # 节点特征, 来自msa等信息
+        # 边特征 只是两两之间的坐标差，也就是向量方向关系
         shift = self.se3(G, node.reshape(B*L, -1, 1), l1_feats)
 
         state = shift['0'].reshape(B, L, -1) # (B, L, C)
@@ -109,6 +116,7 @@ class Refine_Network(nn.Module):
         N_new = CA_new + offset[:,:,0]
         C_new = CA_new + offset[:,:,2]
         xyz_new = torch.stack([N_new, CA_new, C_new], dim=2)
+        print("in func Refine_Network", xyz_new.requires_grad, state.requires_grad)
 
         return xyz_new, state
 
@@ -134,12 +142,19 @@ class Refine_module(nn.Module):
         edge = self.proj_edge(edge)
 
         xyz, state = self.regen_net(seq1hot, idx, node, edge) # 用node和edge，经过图网络生成坐标信息
-        # print(f"region net xyz {xyz.shape} state {state.shape} input seq1hot {seq1hot.shape} idx {idx.shape} edge {edge.shape}", )
        
         # for test train
         func = create_custom_forward(self.refine_net, top_k=64)
+        
+        # checkpoint会导致梯度不立刻计算
+        # 但是最后会计算
         for i_m in range(self.n_module):
             xyz, state = checkpoint.checkpoint(func, node.float(), edge.float(), xyz.float(), state.float(), seq1hot, idx)
+            print("Refine_module output in for loop", xyz.requires_grad, state.requires_grad)
+        # for i_m in range(self.n_module):
+        #     xyz, state = func( node.float(), edge.float(), xyz.detach().float(), state.float(), seq1hot, idx)
+        
         #
+        print("Refine_module output", xyz.requires_grad, state.requires_grad)
         lddt = self.pred_lddt(self.norm_state(state)) 
         return xyz, lddt
