@@ -79,7 +79,6 @@ class Refine_Network(nn.Module):
 
     @torch.cuda.amp.autocast(enabled=True)
     def forward(self, msa, pair, xyz, state, seq1hot, idx, top_k=64):
-        print("Refine_Network input", msa.requires_grad, pair.requires_grad, xyz.requires_grad, state.requires_grad, seq1hot.requires_grad, idx.requires_grad)
         # process node & pair features
         B, L = msa.shape[:2]
         node = self.norm_msa(msa)
@@ -116,7 +115,6 @@ class Refine_Network(nn.Module):
         N_new = CA_new + offset[:,:,0]
         C_new = CA_new + offset[:,:,2]
         xyz_new = torch.stack([N_new, CA_new, C_new], dim=2)
-        print("in func Refine_Network", xyz_new.requires_grad, state.requires_grad)
 
         return xyz_new, state
 
@@ -146,15 +144,12 @@ class Refine_module(nn.Module):
         # for test train
         func = create_custom_forward(self.refine_net, top_k=64)
         
-        # checkpoint会导致梯度不立刻计算
         # 但是最后会计算
         for i_m in range(self.n_module):
             xyz, state = checkpoint.checkpoint(func, node.float(), edge.float(), xyz.float(), state.float(), seq1hot, idx)
-            print("Refine_module output in for loop", xyz.requires_grad, state.requires_grad)
         # for i_m in range(self.n_module):
         #     xyz, state = func( node.float(), edge.float(), xyz.detach().float(), state.float(), seq1hot, idx)
         
         #
-        print("Refine_module output", xyz.requires_grad, state.requires_grad)
         lddt = self.pred_lddt(self.norm_state(state)) 
         return xyz, lddt

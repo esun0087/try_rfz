@@ -217,13 +217,11 @@ class Str2Str(nn.Module):
     
     @torch.cuda.amp.autocast(enabled=True)
     def forward(self, msa, pair, xyz, seq1hot, idx, top_k=64):
-        print("Str2Str input", msa.requires_grad, pair.requires_grad, xyz.requires_grad, seq1hot.requires_grad, idx.requires_grad)
 
         # process msa & pair features
         B, N, L = msa.shape[:3]
         msa = self.norm_msa(msa)
         pair = self.norm_pair(pair)
-        print("Str2Str debug1", msa.requires_grad, pair.requires_grad)
         
         w_seq = self.encoder_seq(msa).reshape(B, L, 1, N).permute(0,3,1,2)
         msa = w_seq*msa
@@ -231,7 +229,6 @@ class Str2Str(nn.Module):
         msa = torch.cat((msa, seq1hot), dim=-1)
         msa = self.norm_node(self.embed_x(msa))
         pair = self.norm_edge(self.embed_e(pair))
-        print("Str2Str debug2", msa.requires_grad, pair.requires_grad)
         
         # define graph
         # 这次构图， 用了xyz生成距离信息,但是这个距离信息是为了能够过滤topk的点关系， 可以说是为了降低复杂度
@@ -251,7 +248,6 @@ class Str2Str(nn.Module):
         N_new = CA_new + offset[:,:,0]
         C_new = CA_new + offset[:,:,2]
         xyz_new = torch.stack([N_new, CA_new, C_new], dim=2)
-        print("Str2Str final ", xyz_new.requires_grad, offset.requires_grad, msa.requires_grad,l1_feats.requires_grad, xyz.requires_grad)
 
         return xyz_new, state
 

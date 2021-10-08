@@ -105,12 +105,14 @@ class SE3Transformer(nn.Module):
     def forward(self, G, type_0_features, type_1_features):
         # Compute equivariant weight basis from relative positions
         # type_0_features msa特征
-        # type_1_features 坐标信息
+        # type_1_features 向量信息
         # degree 的作用一直没想明白
         basis, r = get_basis_and_r(G, self.num_degrees-1)
         # print(basis.keys(), r.requires_grad)
         # r 只是单纯的用边的xyz距离信息算了个综合距离 r = sqrt(x * x + y * y + z * z)
         # basis 比较复杂， 计算的是球面谐波的一些信息，看注释说的是旋转不变的信息， 不知道怎么做的
+        # basie 使用了一些默认的参数，这些参数被放在了文件里
+        # basis最终是在PairwiseConv 中使用， 看名字是卷积
         # 理解没错的话， basis和r都是参考信息， 不需要做梯度的。
         h = {'0': type_0_features, '1': type_1_features}
 
