@@ -88,12 +88,12 @@ class Train():
                     ]
                 print("all loss ", ["%.2f" % i.data for i in loss], "weight", weight)
                 sum_loss = sum(loss)
+                sum_loss.backward()
                 clip_grad_value_(self.model.parameters(), 1)
-                # multi_back.add_loss(sum_loss)
+                optimizer.step()
                 avg_loss += sum_loss.cpu().detach().numpy()
                 data_cnt += 1
             clip_grad_value_(self.model.parameters(), 1)
-            # del (multi_back)
             
             scheduler.step()
             avg_loss = avg_loss / data_cnt

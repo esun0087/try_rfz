@@ -106,6 +106,8 @@ class Refine_Network(nn.Module):
         # # edata['w'] 是pair的特征
         # 节点特征, 来自msa等信息
         # 边特征 只是两两之间的坐标差，也就是向量方向关系
+        # l1_feats 是方向信息
+        # G 里边包含了边的信息, 不过目前g里边没有节点信息
         shift = self.se3(G, node.reshape(B*L, -1, 1), l1_feats)
 
         state = shift['0'].reshape(B, L, -1) # (B, L, C)
@@ -146,7 +148,9 @@ class Refine_module(nn.Module):
         
         # 但是最后会计算
         for i_m in range(self.n_module):
-            xyz, state = checkpoint.checkpoint(func, node.float(), edge.float(), xyz.float(), state.float(), seq1hot, idx)
+            xyz, state = checkpoint.checkpoint(func, node.float(), edge.float(), xyz.detach().float(), state.float(), seq1hot, idx)
+
+        # se3 输出两种节点信息， 一个是用来计算lddt， 一个是用来计算坐标
         # for i_m in range(self.n_module):
         #     xyz, state = func( node.float(), edge.float(), xyz.detach().float(), state.float(), seq1hot, idx)
         

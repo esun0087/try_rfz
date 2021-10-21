@@ -304,8 +304,12 @@ class PairwiseConv(nn.Module):
 
     def forward(self, feat, basis):
         # Get radial weights
+        # 感觉是用权重对feat进行重新处理了
+        # rp不过也就是个全连接而已
+        # feat是边特征，莫非是对边做权重
         R = self.rp(feat)
         kernel = torch.sum(R * basis[f'{self.degree_in},{self.degree_out}'], -1)
+        # print("in PairwiseConv", feat.shape, self.rp, R.shape, basis[f'{self.degree_in},{self.degree_out}'].shape, kernel.shape)
         return kernel.view(kernel.shape[0], self.d_out*self.nc_out, -1)
 
 
@@ -573,6 +577,7 @@ class GConvSE3Partial(nn.Module):
         self.kernel_unary = nn.ModuleDict()
         for (mi, di) in self.f_in.structure:
             for (mo, do) in self.f_out.structure:
+                # 是对边的信息做更新了
                 self.kernel_unary[f'({di},{do})'] = PairwiseConv(di, mi, do, mo, edge_dim=edge_dim)
 
     def __repr__(self):
@@ -590,6 +595,7 @@ class GConvSE3Partial(nn.Module):
         """
         def fnc(edges):
             # Neighbor -> center messages
+            # print("debug", edges.src.keys(), edges.dst.keys())
             msg = 0
             for m_in, d_in in self.f_in.structure:
                 # if type 1 and flag set, add relative position as feature
@@ -610,9 +616,9 @@ class GConvSE3Partial(nn.Module):
                     rel = (edges.dst['x'] - edges.src['x']).view(-1, 3, 1)
                     src[..., :3, :1] = src[..., :3, :1] + rel
                 else:
-                    src = edges.src[f'{d_in}'].view(-1, m_in*(2*d_in+1), 1)
+                    src = edges.src[f'{d_in}'].view(-1, m_in*(2*d_in+1), 1)  # 运行在这里
                 edge = edges.data[f'({d_in},{d_out})']
-                msg = msg + torch.matmul(edge, src)
+                msg = msg + torch.matmul(edge, src)  # 边和节点的乘积，不过边edge的信息是已经经过basis更新过的，使用的是kernel_unary
             msg = msg.view(msg.shape[0], -1, 2*d_out+1)
 
             return {f'out{d_out}': msg.view(msg.shape[0], -1, 2*d_out+1)}
@@ -622,32 +628,52 @@ class GConvSE3Partial(nn.Module):
         """Forward pass of the linear layer
 
         Args:
-            h: dict of node-features
+            h: dict of node-features 目前存的是0： 1：
             G: minibatch of (homo)graphs
             r: inter-atomic distances
             basis: pre-computed Q * Y
         Returns:
             tensor with new features [B, n_points, n_features_out]
         """
-        with G.local_scope():
+        with G.local_scope(): # 修改不会对原图生效
             # Add node features to local graph scope
             for k, v in h.items():
                 G.ndata[k] = v
 
             # Add edge features
             if 'w' in G.edata.keys():
+                # w 在这里存储的是pair的特征, 
+                # r 存储的是两两之间的距离信息
+                # feat 是边特征
                 w = G.edata['w'] # shape: [#edges_in_batch, #bond_types]
                 feat = torch.cat([w, r], -1)
             else:
                 feat = torch.cat([r, ], -1)
+            # print("GConvSE3Partial", w.shape, r.shape)
+            # print("debug", self.f_in.structure, self.f_out.structure)
+            # print("debug feat", feat.shape, basis.keys())
             for (mi, di) in self.f_in.structure:
                 for (mo, do) in self.f_out.structure:
-                    etype = f'({di},{do})'
+                    etype = f'({di},{do})'  # 有种入度 出度的感觉
+                    # 感觉是使用basis对feat进行更新的意思?
+                    # feat存储的是两两边的特征,这里的边是经过筛选后的边,不是L * L,
+                    # kernel_unary 是一个PairwiseConv 信息
+                    # 感觉是二元操作符， 然后输入feat和basis
+                    # basis  是一个字典,这个应该是根据度来的， dict_keys(['0,0', '0,1', '0,2', '1,0', '1,1', '1,2', '2,0', '2,1', '2,2'])
+                    # 同时 basis是基于3d转换计算了点东西,感觉是为了权重更新
+                    # feat  是边特征
+                    # 感觉是把边特征进行了更新
                     G.edata[etype] = self.kernel_unary[etype](feat, basis)
 
             # Perform message-passing for each output feature type
+            # 做边信息的更新
+            # 使用的是edata[etype]和点特征
             for d in self.f_out.degrees:
                 G.apply_edges(self.udf_u_mul_e(d))
+
+            # 确实，这边输出的是边信息
+            # for d in self.f_out.degrees:
+            #     print("GConvSE3Partial", G.edata[f'out{d}'].shape)
 
             return {f'{d}': G.edata[f'out{d}'] for d in self.f_out.degrees}
 
@@ -763,12 +789,12 @@ class GSE3Res(nn.Module):
         self.GMAB = nn.ModuleDict()
 
         # Projections
-        self.GMAB['v'] = GConvSE3Partial(f_in, self.f_mid_out, edge_dim=edge_dim, x_ij=x_ij)
+        self.GMAB['v'] = GConvSE3Partial(f_in, self.f_mid_out, edge_dim=edge_dim, x_ij=x_ij) # 用图对边的信息进行更新
         self.GMAB['k'] = GConvSE3Partial(f_in, self.f_mid_in, edge_dim=edge_dim, x_ij=x_ij)
-        self.GMAB['q'] = G1x1SE3(f_in, self.f_mid_in)
+        self.GMAB['q'] = G1x1SE3(f_in, self.f_mid_in) # 这个做的比较简单， 
 
         # Attention
-        self.GMAB['attn'] = GMABSE3(self.f_mid_out, self.f_mid_in, n_heads=n_heads)
+        self.GMAB['attn'] = GMABSE3(self.f_mid_out, self.f_mid_in, n_heads=n_heads) # 这个比较复杂
 
         # Skip connections
         if self.skip == 'cat':
@@ -788,17 +814,23 @@ class GSE3Res(nn.Module):
                 'skip connection would change output structure'
 
     def forward(self, features, G, **kwargs):
+        """
+        kwargs 里边是 r 和basis, 感觉是参考信息，不变化
+        features 目前存的是0：， 1：
+        """
         # Embeddings
-        v = self.GMAB['v'](features, G=G, **kwargs)
-        k = self.GMAB['k'](features, G=G, **kwargs)
-        q = self.GMAB['q'](features, G=G) # 这里边G没有用到
+        # GConvSE3Partial 只是单纯的为了做embedding. 
+        v = self.GMAB['v'](features, G=G, **kwargs) # 边 torch.Size([17696, 4, 1/3])
+        k = self.GMAB['k'](features, G=G, **kwargs) # 边 torch.Size([17696, 4, 1/3])
+        q = self.GMAB['q'](features, G=G) # 这里边G没有用到 点信息 torch.Size([L, 4, 1/3])
 
         # Attention
-        z = self.GMAB['attn'](v, k=k, q=q, G=G)
+        z = self.GMAB['attn'](v, k=k, q=q, G=G) # 点信息 torch.Size([L, 4, 1/3])
         # for i in q:
         #     print("attention", i, q[i].shape, k[i].shape, v[i].shape, z[i].shape)
 
         # 有种把坐标旋转之后， 在对特征进行更新的感觉，
+        # features 是点特征
         if self.skip == 'cat':
             z = self.cat(z, features)
             z = self.project(z)
